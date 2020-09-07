@@ -41,7 +41,7 @@ func Listen(ip string, port int) {
 }
 
 func (network *Network) SendPingMessage(contact *Contact) {
-	CONNECT := "127.0.0.1:1234"
+	CONNECT := contact.Address + ":1234"
 
 	s, err := net.ResolveUDPAddr("udp4", CONNECT)
 	c, err := net.DialUDP("udp4", nil, s)
