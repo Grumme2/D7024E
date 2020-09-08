@@ -1,6 +1,6 @@
 package d7024e
 
-import(
+import (
 	"fmt"
 	"net"
 )
@@ -40,7 +40,8 @@ func Listen(ip string, port int) {
 	}
 }
 
-func (network *Network) SendPingMessage(contact *Contact) {
+//func (network *Network) SendPingMessage(contact *Contact) {
+func SendPingMessage(contact *Contact) {
 	CONNECT := contact.Address + ":1234"
 
 	s, err := net.ResolveUDPAddr("udp4", CONNECT)
