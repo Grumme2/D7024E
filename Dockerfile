@@ -1,7 +1,7 @@
-FROM alpine:latest
+FROM golang:1.15-alpine
 
 RUN apk update && apk upgrade && \
-	apk add go git \
+	apk add git \
 	git clone https://github.com/Grumme2/D7024E.git \
 	git checkout m1_ping
 
