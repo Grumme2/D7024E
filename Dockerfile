@@ -1,4 +1,17 @@
-FROM alpine:latest
+FROM golang:1.15-alpine
+
+RUN mkdir /app
+
+ADD . /app
+
+WORKDIR /app
+
+RUN go mod download
+ 
+RUN go build  cmd/main/main.go 
+ 
+CMD ["./app/main"]
+
 
 # Add the commands needed to put your compiled go binary in the container and
 # run it when the container starts.
