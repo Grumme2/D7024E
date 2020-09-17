@@ -6,10 +6,11 @@ import (
 )
 
 type Network struct {
+	routingTable *RoutingTable
 }
 
 func Listen(ip string, port int) {
-	PORT := ":1234" //Predefined port
+	PORT := ":8000" //Predefined port
 
 	s, err := net.ResolveUDPAddr("udp4", PORT)
 	if err != nil {
@@ -20,7 +21,7 @@ func Listen(ip string, port int) {
 	connection, err := net.ListenUDP("udp4", s)
 	if err != nil {
 		fmt.Println(err)
-		return
+		return 
 	}
 
 	defer connection.Close()
@@ -42,7 +43,7 @@ func Listen(ip string, port int) {
 
 //func (network *Network) SendPingMessage(contact *Contact) {
 func SendPingMessage(contact *Contact) {
-	CONNECT := contact.Address + ":1234"
+	CONNECT := contact.Address + ":8000"
 
 	s, err := net.ResolveUDPAddr("udp4", CONNECT)
 	c, err := net.DialUDP("udp4", nil, s)
