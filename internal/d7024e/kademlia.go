@@ -7,8 +7,11 @@ type Kademlia struct {
 
 func (kademlia *Kademlia) JoinNetwork(target *Contact) {
 
-	if rt.me == nil {
-		//generate kademliaId etc for me
+	//Generate new kademlia for self if none exists
+	if (rt.me == nil) {
+		myIP := 127.0.0.1 //how get own ip???????????????????? am dumb
+		distance := what //wat
+		rt.me := NewContact(NewRandomKademliaID(), myIP, distance)
 	}
 
 	rt.AddContact(target)                     //Adds the target to the correct k-bucket
