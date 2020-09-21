@@ -21,7 +21,7 @@ func Listen(ip string, port int) {
 	connection, err := net.ListenUDP("udp4", s)
 	if err != nil {
 		fmt.Println(err)
-		return 
+		return
 	}
 
 	defer connection.Close()
@@ -35,8 +35,8 @@ func Listen(ip string, port int) {
 		fmt.Printf("REPONSE: %s\n", string(data))
 		_, err = connection.WriteToUDP(data, addr)
 		if err != nil {
-				fmt.Println(err)
-				return
+			fmt.Println(err)
+			return
 		}
 	}
 }
@@ -59,17 +59,17 @@ func SendPingMessage(contact *Contact) {
 		_, err = c.Write(data)
 
 		if err != nil {
-				fmt.Println(err)
-				return
+			fmt.Println(err)
+			return
 		}
 
 		buffer := make([]byte, 1024)
 		n, _, err := c.ReadFromUDP(buffer)
 		if err != nil {
-				fmt.Println(err)
-				return
+			fmt.Println(err)
+			return
 		}
-		
+
 		fmt.Printf("REPLY: %s\n", string(buffer[0:n]))
 		return
 	}

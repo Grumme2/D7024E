@@ -2,9 +2,10 @@ package main
 
 import (
 	//"fmt"
-	"github.com/Grumme2/D7024E/internal/test"
-	"github.com/Grumme2/D7024E/internal/d7024e"
 	"os"
+
+	"github.com/Grumme2/D7024E/internal/d7024e"
+	"github.com/Grumme2/D7024E/internal/test"
 )
 
 func main() {

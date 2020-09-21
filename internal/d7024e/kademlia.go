@@ -1,20 +1,26 @@
 package d7024e
 
 type Kademlia struct {
-	rt RoutingTable
+	rt      RoutingTable
 	network Network
 }
 
-func (node *Node) JoinNetwork(target *Contact) {
-	//Must already have contact to a node N in the network
-	rt.AddContact(target) //1. Insert N into k-bucket
-	LookupContact(rt.me) //2. Node lookup on its own node ID
-	//3a. refresh all k-buckets further away than its closets neighbour
-	//3b. during the refreshes this node populates its own k-buckets and 
-	//bucket.GetContactAndCalcDistance()
-	//rt.FindClosestContacts()
+func (kademlia *Kademlia) JoinNetwork(target *Contact) {
 
-	//4. inserts itself into other nodes k-buckets as necessary
+	if rt.me == nil {
+		//generate kademliaId etc for me
+	}
+
+	rt.AddContact(target)                     //Adds the target to the correct k-bucket
+	LookupContact(rt.me)                      //Node lookup on self
+	closetsContacts := rt.FindClosestContacts //Get closests contacts
+
+	//Refresh all contacts except the closets neighbour (which is index 0 in the array)
+	for i := range closetsContacts {
+		if i != 0 {
+			LookupContact(closetsContacts[i])
+		}
+	}
 }
 
 func (kademlia *Kademlia) LookupContact(target *Contact) {
