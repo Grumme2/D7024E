@@ -5,13 +5,21 @@ type Kademlia struct {
 	network Network
 }
 
-func (kademlia *Kademlia) JoinNetwork(target *Contact) {
+func (kademlia *Kademlia) CreateNode(){
+	network.Listen()
+	
 
+	myID := NewRandomKademliaID()
+	me := NewContact(myID, myIP, myID)
+	rt := NewRoutingTable(me)
+}
+
+func (kademlia *Kademlia) JoinNetwork(target *Contact) {
 	//Generate new kademlia for self if none exists
 	if (rt.me == nil) {
 		myIP := 127.0.0.1 //how get own ip???????????????????? am dumb
-		distance := what //wat
-		rt.me := NewContact(NewRandomKademliaID(), myIP, distance)
+		myID := NewRandomKademliaID()
+		rt.me := NewContact(myID, myIP, myID)
 	}
 
 	rt.AddContact(target)                     //Adds the target to the correct k-bucket
