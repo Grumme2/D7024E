@@ -14,12 +14,8 @@ func (network *Network) SendPingMessage(contact *Contact) {
 	// TODO
 }
 
-func (network *Network) SendFindContactMessage(contact *Contact) Contact {
-	if contact.ID == network.kadem.Rt.me.ID {
-		return *contact
-	}
-	contacts := network.kadem.Rt.FindClosestContacts(contact.ID, 1)
-	return contacts[0].Kademlia.network.SendFindContactMessage(contact)
+func (network *Network) SendFindContactMessage(contact *Contact) []Contact {
+	contacts := network.kadem.Rt.FindClosestContacts(contact.ID, k)
 }
 
 func (network *Network) SendFindDataMessage(hash string) {
