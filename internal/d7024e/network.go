@@ -50,8 +50,10 @@ func Listen(ip string, port int) {
 		n, addr, err := connection.ReadFromUDP(buffer)
 		fmt.Print("RECEIVED: ", string(buffer[0:n-1]))
 
-		data := []byte("Alive")
-		fmt.Printf("REPONSE: %s\n", string(data))
+		//Update bucket corresponding to sender
+
+		data := []byte("PONG")
+		fmt.Printf("SENT: %s\n", string(data))
 		_, err = connection.WriteToUDP(data, addr)
 		if err != nil {
 			fmt.Println(err)
@@ -61,8 +63,14 @@ func Listen(ip string, port int) {
 }
 
 //func (network *Network) SendPingMessage(contact *Contact) {
-func SendPingMessage(contact *Contact) {
-	CONNECT := contact.Address + ":8000"
+func SendPingMessage(sender KademliaID, targetAddress string, targetPort string) {
+	
+	rpcMessage := NewRPC(sender, targetAddress, targetPort, "PING")
+	fmt.Println("rpc created")
+	fmt.Println(rpcMessage)
+	//Convert rpcMessage to json or something before sending so it can be parsed properly
+	
+	CONNECT := targetAddress + ":" + targetPort
 
 	s, err := net.ResolveUDPAddr("udp4", CONNECT)
 	c, err := net.DialUDP("udp4", nil, s)
@@ -74,7 +82,7 @@ func SendPingMessage(contact *Contact) {
 	defer c.Close()
 
 	for {
-		data := []byte("Ping \n")
+		data := []byte(rpcMessage)
 		_, err = c.Write(data)
 
 		if err != nil {
@@ -89,7 +97,13 @@ func SendPingMessage(contact *Contact) {
 			return
 		}
 
-		fmt.Printf("REPLY: %s\n", string(buffer[0:n]))
+		fmt.Printf("RECEIVED: %s\n", string(buffer[0:n]))
+		//Update bucket appropriate to the recipient
+		//Foreach bucket{Foreach contact{Look for IP adress}}
+		//If the IP is found, put the contact at the end of the bucket
+		//If it does not exist in a bucket, add it unless the bucket is full. (To which bucket?)
+		//If the bucket is full, ping the contact at the top of the bucket. If that contact does not respond in a reasonable time it must be dropped and the new contact is added instead (but at the end of the list)
+		//does bucket.AddContact() already do this??
 		return
 	}
 }
