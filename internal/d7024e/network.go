@@ -9,6 +9,10 @@ type Network struct {
 	routingTable *RoutingTable
 }
 
+func NewNetwork() Network {
+	return Network{}
+}
+
 func GetLocalIP() string {
 	addrs, err := net.InterfaceAddrs()
 
@@ -62,39 +66,32 @@ func Listen(ip string, port int) {
 	}
 }
 
-//func (network *Network) SendPingMessage(contact *Contact) {
-func SendPingMessage(sender KademliaID, targetAddress string, targetPort string) {
-	
-	rpcMessage := NewRPC(sender, targetAddress, targetPort, "PING")
-	fmt.Println("rpc created")
-	fmt.Println(rpcMessage)
-	//Convert rpcMessage to json or something before sending so it can be parsed properly
-	
-	CONNECT := targetAddress + ":" + targetPort
+func (network *Network) SendPingMessage(message RPC) bool {
+	CONNECT := message.TargetAddress + ":" + message.TargetPort
 
 	s, err := net.ResolveUDPAddr("udp4", CONNECT)
 	c, err := net.DialUDP("udp4", nil, s)
 	if err != nil {
 		fmt.Println(err)
-		return
+		return false
 	}
 
 	defer c.Close()
 
 	for {
-		data := []byte(rpcMessage)
+		data := []byte(JSONEncode(message))
 		_, err = c.Write(data)
 
 		if err != nil {
 			fmt.Println(err)
-			return
+			return false
 		}
 
 		buffer := make([]byte, 1024)
 		n, _, err := c.ReadFromUDP(buffer)
 		if err != nil {
 			fmt.Println(err)
-			return
+			return false
 		}
 
 		fmt.Printf("RECEIVED: %s\n", string(buffer[0:n]))
@@ -104,7 +101,7 @@ func SendPingMessage(sender KademliaID, targetAddress string, targetPort string)
 		//If it does not exist in a bucket, add it unless the bucket is full. (To which bucket?)
 		//If the bucket is full, ping the contact at the top of the bucket. If that contact does not respond in a reasonable time it must be dropped and the new contact is added instead (but at the end of the list)
 		//does bucket.AddContact() already do this??
-		return
+		return true
 	}
 }
 
