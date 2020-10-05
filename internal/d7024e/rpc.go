@@ -6,9 +6,8 @@ import (
 )
 
 type RPC struct {
-	Sender KademliaID
+	Sender Contact
 	TargetAddress string
-	TargetPort string
 	MessageType string
 	Content string
 }
@@ -25,8 +24,8 @@ const (
 	Ok = RPCProcedureType("OK")
 )
 
-func NewRPC(sender KademliaID, targetAddress string, targetPort string, messageType string, content string) RPC {
-	return RPC{Sender: sender, TargetAddress: targetAddress, TargetPort: targetPort, MessageType: messageType, Content: content}
+func NewRPC(sender Contact, targetAddress string, messageType string, content string) RPC {
+	return RPC{Sender: sender, TargetAddress: targetAddress, MessageType: messageType, Content: content}
 }
 
 func JSONEncode(message RPC) []byte {

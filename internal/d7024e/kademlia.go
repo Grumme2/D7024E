@@ -5,6 +5,7 @@ type Kademlia struct {
 	network Network
 }
 
+/*
 func (kademlia *Kademlia) CreateNode(){
 	network.Listen()
 	
@@ -13,7 +14,9 @@ func (kademlia *Kademlia) CreateNode(){
 	me := NewContact(myID, myIP, myID)
 	rt := NewRoutingTable(me)
 }
+*/
 
+/*
 func (kademlia *Kademlia) JoinNetwork(target *Contact) {
 	//Generate new kademlia for self if none exists
 	if (rt.me == nil) {
@@ -33,7 +36,9 @@ func (kademlia *Kademlia) JoinNetwork(target *Contact) {
 		}
 	}
 }
+*/
 
+/*
 func (kademlia *Kademlia) LookupContact(target *Contact) {
 	rt.FindClosestContacts(target)
 
@@ -41,6 +46,7 @@ func (kademlia *Kademlia) LookupContact(target *Contact) {
 	//2. use rt.FindClosestContacts
 	//3. see if exists in closests
 }
+*/
 
 func (kademlia *Kademlia) LookupData(hash string) {
 	// TODO

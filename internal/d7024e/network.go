@@ -32,8 +32,8 @@ func GetLocalIP() string {
 	return ""
 }
 
-func Listen(ip string, port int) {
-	PORT := ":8000" //Predefined port
+func (network *Network) Listen(me Contact) {
+	PORT := ":8000" //Hardcoded port
 
 	s, err := net.ResolveUDPAddr("udp4", PORT)
 	if err != nil {
@@ -52,13 +52,27 @@ func Listen(ip string, port int) {
 
 	for {
 		n, addr, err := connection.ReadFromUDP(buffer)
-		fmt.Print("RECEIVED: ", string(buffer[0:n-1]))
+		fmt.Println(n) //Printing because otherwise n is unused and wont let us compile
+		receivedData := buffer//string(buffer[0:n-1])
+		decodedData := JSONDecode(receivedData)
+		responseType := ""
+		reponseContent := ""
+		switch decodedData.MessageType {
+			case "PING":
+				responseType = "PONG"
+			case "PONG":
+				responseType = "OK"
+		}
+
+		responseRPC := NewRPC(me, "get who it was sent from using the rpc package. Change sender from KademliaID to contact in rpc?", responseType, reponseContent)
+		responseData := JSONEncode(responseRPC)
 
 		//Update bucket corresponding to sender
 
-		data := []byte("PONG")
-		fmt.Printf("SENT: %s\n", string(data))
-		_, err = connection.WriteToUDP(data, addr)
+		//responseData := []byte("PONG")
+		fmt.Printf("SENT: %s\n", string(responseData))
+
+		_, err = connection.WriteToUDP(responseData, addr)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -67,7 +81,7 @@ func Listen(ip string, port int) {
 }
 
 func (network *Network) SendPingMessage(message RPC) bool {
-	CONNECT := message.TargetAddress + ":" + message.TargetPort
+	CONNECT := message.TargetAddress + ":8000" //Hardcoded port
 
 	s, err := net.ResolveUDPAddr("udp4", CONNECT)
 	c, err := net.DialUDP("udp4", nil, s)
