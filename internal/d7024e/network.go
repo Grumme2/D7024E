@@ -53,30 +53,26 @@ func (network *Network) Listen(me Contact) {
 		n, addr, err := connection.ReadFromUDP(buffer)
 		receivedData := buffer[0:n]
 		decodedData := JSONDecode(receivedData)
-		responseType := "undefined"
-		responseContent := "networkResponse"
-		fmt.Println(decodedData.TargetAddress)
-		fmt.Println("DecodedData.MessageType: " + decodedData.MessageType)
-		switch decodedData.MessageType {
-			case "PING":
-				responseType = "PONG"
-				fmt.Println("ResponseType: PONG")
-			case "PONG":
-				responseType = "OK"
-				fmt.Println("ResponseType: OK")
-			case "OK":
-				responseType = "NONE"
-				fmt.Println("ResponseType: NONE")
-		}
 
-		fmt.Printf("Recieved: %s\n", string(receivedData))
+		fmt.Printf("RECEIVED: %s\n", string(receivedData))
 
-		responseRPC := NewRPC(me, decodedData.Sender.Address, responseType, responseContent)
-		responseData := JSONEncode(responseRPC)
-
-		if (responseType != "NONE" && responseType != "undefined"){
-			//Update bucket corresponding to sender
+		if (decodedData.MessageType != "NONE" && decodedData.MessageType != "UNDEFINED"){
+			responseType := "UNDEFINED"
+			responseContent := "defaultNetworkResponse"
+	
+			switch decodedData.MessageType {
+				case "PING":
+					responseType = "PONG"
+				case "PONG":
+					responseType = "OK"
+				case "OK":
+					responseType = "NONE"
+			}
+	
+			responseRPC := NewRPC(me, decodedData.Sender.Address, responseType, responseContent)
+			responseData := JSONEncode(responseRPC)
 			response := []byte(responseData)
+
 			fmt.Printf("SENT: %s\n", string(response))
 
 			_, err = connection.WriteToUDP(response, addr)
@@ -84,6 +80,8 @@ func (network *Network) Listen(me Contact) {
 				fmt.Println(err)
 				return
 			}
+		} else { //No response if the messagetype is NONE or UNDEFINED
+			fmt.Println("Received 'OK' or 'UNDEFINED' message. Will not respond.")
 		}
 	}
 }
