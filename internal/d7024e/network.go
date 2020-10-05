@@ -28,7 +28,6 @@ func GetLocalIP() string {
 			}
 		}
 	}
-
 	return ""
 }
 
@@ -52,30 +51,39 @@ func (network *Network) Listen(me Contact) {
 
 	for {
 		n, addr, err := connection.ReadFromUDP(buffer)
-		fmt.Println(n) //Printing because otherwise n is unused and wont let us compile
-		receivedData := buffer//string(buffer[0:n-1])
+		receivedData := buffer[0:n]
 		decodedData := JSONDecode(receivedData)
-		responseType := ""
-		reponseContent := ""
+		responseType := "undefined"
+		responseContent := "networkResponse"
+		fmt.Println(decodedData.TargetAddress)
+		fmt.Println("DecodedData.MessageType: " + decodedData.MessageType)
 		switch decodedData.MessageType {
 			case "PING":
 				responseType = "PONG"
+				fmt.Println("ResponseType: PONG")
 			case "PONG":
 				responseType = "OK"
+				fmt.Println("ResponseType: OK")
+			case "OK":
+				responseType = "NONE"
+				fmt.Println("ResponseType: NONE")
 		}
 
-		responseRPC := NewRPC(me, "get who it was sent from using the rpc package. Change sender from KademliaID to contact in rpc?", responseType, reponseContent)
+		fmt.Printf("Recieved: %s\n", string(receivedData))
+
+		responseRPC := NewRPC(me, decodedData.Sender.Address, responseType, responseContent)
 		responseData := JSONEncode(responseRPC)
 
-		//Update bucket corresponding to sender
+		if (responseType != "NONE" && responseType != "undefined"){
+			//Update bucket corresponding to sender
+			response := []byte(responseData)
+			fmt.Printf("SENT: %s\n", string(response))
 
-		//responseData := []byte("PONG")
-		fmt.Printf("SENT: %s\n", string(responseData))
-
-		_, err = connection.WriteToUDP(responseData, addr)
-		if err != nil {
-			fmt.Println(err)
-			return
+			_, err = connection.WriteToUDP(response, addr)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
 		}
 	}
 }
