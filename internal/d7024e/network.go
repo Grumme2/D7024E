@@ -31,7 +31,7 @@ func GetLocalIP() string {
 	return ""
 }
 
-func (network *Network) Listen(me Contact) {
+func (network *Network) Listen(rt RoutingTable) {
 	PORT := ":8000" //Hardcoded port
 
 	s, err := net.ResolveUDPAddr("udp4", PORT)
@@ -56,6 +56,22 @@ func (network *Network) Listen(me Contact) {
 
 		fmt.Printf("RECEIVED: %s\n", string(receivedData))
 
+		//For every recieved communication, update the bucket corresponding to the sender.	
+		//If contact already exists, move it to the start of the bucket.
+
+		//True if contact already is in bucket
+		if(rt.buckets[rt.getBucketIndex(decodedData.Sender.ID)].IsContactInBucket(decodedData.Sender)){
+			rt.AddContact(decodedData.Sender) //Move contact to start of bucket
+		} else if (rt.isBucketFull(decodedData.Sender.ID)){
+			//If bucket is full, the node pings the contact at the tail of the buckets list
+			//If previously mentioned contact fails to respond in x amount of time, it is dropped from the list and the new contact is added at the head
+			//Otherwise the new contact is ignored (for bucket updating purposes)
+		} else {
+			rt.AddContact(decodedData.Sender) //Adds contact to start of the bucket
+		}
+
+
+
 		if (decodedData.MessageType != "NONE" && decodedData.MessageType != "UNDEFINED"){
 			responseType := "UNDEFINED"
 			responseContent := "defaultNetworkResponse"
@@ -69,7 +85,7 @@ func (network *Network) Listen(me Contact) {
 					responseType = "NONE"
 			}
 	
-			responseRPC := NewRPC(me, decodedData.Sender.Address, responseType, responseContent)
+			responseRPC := NewRPC(rt.me, decodedData.Sender.Address, responseType, responseContent)
 			responseData := JSONEncode(responseRPC)
 			response := []byte(responseData)
 
@@ -115,12 +131,6 @@ func (network *Network) SendPingMessage(message RPC) bool {
 		}
 
 		fmt.Printf("RECEIVED: %s\n", string(buffer[0:n]))
-		//Update bucket appropriate to the recipient
-		//Foreach bucket{Foreach contact{Look for IP adress}}
-		//If the IP is found, put the contact at the end of the bucket
-		//If it does not exist in a bucket, add it unless the bucket is full. (To which bucket?)
-		//If the bucket is full, ping the contact at the top of the bucket. If that contact does not respond in a reasonable time it must be dropped and the new contact is added instead (but at the end of the list)
-		//does bucket.AddContact() already do this??
 		return true
 	}
 }
