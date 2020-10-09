@@ -1,4 +1,10 @@
-FROM alpine:latest
+FROM golang:1.15-alpine
+
+RUN apk update && apk upgrade && \
+	apk add go git && \
+	git clone https://github.com/Grumme2/D7024E.git && \
+	cd D7024E && \
+	git checkout m1_ping
 
 # Add the commands needed to put your compiled go binary in the container and
 # run it when the container starts.

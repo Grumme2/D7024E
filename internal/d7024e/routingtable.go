@@ -2,7 +2,6 @@ package d7024e
 
 const bucketSize = 20
 
-
 // RoutingTable definition
 // keeps a refrence contact of me and an array of buckets
 type RoutingTable struct {
@@ -67,4 +66,14 @@ func (routingTable *RoutingTable) getBucketIndex(id *KademliaID) int {
 	}
 
 	return IDLength*8 - 1
+}
+
+func (routingTable *RoutingTable) isBucketFull(id *KademliaID) bool {
+	bucketIndex := routingTable.getBucketIndex(id)
+	currentBucketSize := routingTable.buckets[bucketIndex].Len()
+	if (currentBucketSize >= bucketSize){
+		return true
+	} else {
+		return false
+	}
 }
