@@ -1,6 +1,7 @@
 package d7024e
 
 import (
+	"encoding/hex"
 	"fmt"
 	"net"
 )
@@ -56,13 +57,13 @@ func (network *Network) Listen(rt RoutingTable) {
 
 		fmt.Printf("RECEIVED: %s\n", string(receivedData))
 
-		//For every recieved communication, update the bucket corresponding to the sender.	
+		//For every recieved communication, update the bucket corresponding to the sender.
 		//If contact already exists, move it to the start of the bucket.
 
 		//True if contact already is in bucket
-		if(rt.buckets[rt.getBucketIndex(decodedData.Sender.ID)].IsContactInBucket(decodedData.Sender)){
+		if rt.buckets[rt.getBucketIndex(decodedData.Sender.ID)].IsContactInBucket(decodedData.Sender) {
 			rt.AddContact(decodedData.Sender) //Move contact to start of bucket
-		} else if (rt.isBucketFull(decodedData.Sender.ID)){
+		} else if rt.isBucketFull(decodedData.Sender.ID) {
 			//If bucket is full, the node pings the contact at the tail of the buckets list
 			//If previously mentioned contact fails to respond in x amount of time, it is dropped from the list and the new contact is added at the head
 			//Otherwise the new contact is ignored (for bucket updating purposes)
@@ -70,21 +71,19 @@ func (network *Network) Listen(rt RoutingTable) {
 			rt.AddContact(decodedData.Sender) //Adds contact to start of the bucket
 		}
 
-
-
-		if (decodedData.MessageType != "NONE" && decodedData.MessageType != "UNDEFINED"){
+		if decodedData.MessageType != "NONE" && decodedData.MessageType != "UNDEFINED" {
 			responseType := "UNDEFINED"
 			responseContent := "defaultNetworkResponse"
-	
+
 			switch decodedData.MessageType {
-				case "PING":
-					responseType = "PONG"
-				case "PONG":
-					responseType = "OK"
-				case "OK":
-					responseType = "NONE"
+			case "PING":
+				responseType = "PONG"
+			case "PONG":
+				responseType = "OK"
+			case "OK":
+				responseType = "NONE"
 			}
-	
+
 			responseRPC := NewRPC(rt.me, decodedData.Sender.Address, responseType, responseContent)
 			responseData := JSONEncode(responseRPC)
 			response := []byte(responseData)
@@ -133,6 +132,11 @@ func (network *Network) SendPingMessage(message RPC) bool {
 		fmt.Printf("RECEIVED: %s\n", string(buffer[0:n]))
 		return true
 	}
+}
+
+func (network *Network) AddToStore(message string) {
+	hxMsg := hex.EncodeToString([]byte(message))
+	KeyValueStore[hxMsg] = message
 }
 
 func (network *Network) SendFindContactMessage(contact *Contact) {
