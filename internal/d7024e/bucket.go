@@ -52,7 +52,7 @@ func (bucket *bucket) GetContactAndCalcDistance(target *KademliaID) []Contact {
 	return contacts
 }
 
-func (bucket *bucket) removeFromBucket(contact *Contact) {
+func (bucket *bucket) RemoveContact(contact Contact) {
 	for element := bucket.list.Front(); element != nil; element.Next() {
 		nID := element.Value.(Contact).ID
 		if contact.ID.Equals(nID) {
