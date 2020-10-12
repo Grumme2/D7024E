@@ -123,6 +123,19 @@ func (network *Network) Listen() {
 					responseType = "OK"
 				case "OK":
 					responseType = "NONE"
+				case "STORE":
+					key := network.AddToStore(decodedData.Content)
+					responseType = "ADDED TO STORE"
+					responseContent = key
+				case "FINDVALUE":
+					data := network.LookForData(decodedData.COntent)
+					if data == "" {
+						responseType = "DATA NOT FOUND"
+						responseContent = data
+					}else {
+						responseType = "DATA FOUND"
+						responseContent = data
+					}
 			}
 	
 			responseRPC := NewRPC(network.routingTable.me, decodedData.Sender.Address, responseType, responseContent)
@@ -175,9 +188,10 @@ func (network *Network) SendMessage(message RPC) bool {
 	}
 }
 
-func (network *Network) AddToStore(message string) {
+func (network *Network) AddToStore(message string) string {
 	hxMsg := hex.EncodeToString([]byte(message))
 	KeyValueStore[hxMsg] = message
+	return hxMsg
 }
 
 func (network *Network) LookForData(hash string) string {
