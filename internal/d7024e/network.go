@@ -117,12 +117,12 @@ func (network *Network) Listen() {
 			responseContent := "defaultNetworkResponse"
 
 			switch decodedData.MessageType {
-			case "PING":
-				responseType = "PONG"
-			case "PONG":
-				responseType = "OK"
-			case "OK":
-				responseType = "NONE"
+				case "PING":
+					responseType = "PONG"
+				case "PONG":
+					responseType = "OK"
+				case "OK":
+					responseType = "NONE"
 			}
 	
 			responseRPC := NewRPC(network.routingTable.me, decodedData.Sender.Address, responseType, responseContent)
