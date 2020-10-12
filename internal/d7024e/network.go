@@ -1,6 +1,7 @@
 package d7024e
 
 import (
+	"encoding/hex"
 	"fmt"
 	"net"
 	"time"
@@ -114,7 +115,7 @@ func (network *Network) Listen() {
 		if (decodedData.MessageType != "NONE" && decodedData.MessageType != "UNDEFINED"){
 			responseType := "UNDEFINED"
 			responseContent := "defaultNetworkResponse"
-	
+
 			switch decodedData.MessageType {
 				case "PING":
 					responseType = "PONG"
@@ -172,6 +173,22 @@ func (network *Network) SendMessage(message RPC) bool {
 		fmt.Printf("RECEIVED: %s\n", string(buffer[0:n]))
 		return true
 	}
+}
+
+func (network *Network) AddToStore(message string) {
+	hxMsg := hex.EncodeToString([]byte(message))
+	KeyValueStore[hxMsg] = message
+}
+
+func (network *Network) LookForData(hash string) string {
+	for key, element := range KeyValueStore {
+		if key == hash {
+			return element
+		} else {
+			continue
+		}
+	}
+	return ""
 }
 
 func (network *Network) SendFindContactMessage(contact *Contact) {

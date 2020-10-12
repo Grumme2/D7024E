@@ -77,7 +77,7 @@ func (routingTable *RoutingTable) getBucketIndex(id *KademliaID) int {
 func (routingTable *RoutingTable) isBucketFull(id *KademliaID) bool {
 	bucketIndex := routingTable.getBucketIndex(id)
 	currentBucketSize := routingTable.buckets[bucketIndex].Len()
-	if (currentBucketSize >= bucketSize){
+	if (currentBucketSize >= bucketSize) {
 		return true
 	} else {
 		return false
