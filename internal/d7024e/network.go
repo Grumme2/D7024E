@@ -101,7 +101,7 @@ func (network *Network) Listen(rt RoutingTable) {
 	}
 }
 
-func (network *Network) SendPingMessage(message RPC) bool {
+func (network *Network) SendMessage(message RPC) bool {
 	CONNECT := message.TargetAddress + ":8000" //Hardcoded port
 
 	s, err := net.ResolveUDPAddr("udp4", CONNECT)
