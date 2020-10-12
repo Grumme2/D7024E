@@ -139,6 +139,17 @@ func (network *Network) AddToStore(message string) {
 	KeyValueStore[hxMsg] = message
 }
 
+func (network *Network) LookForData(hash string) string {
+	for key, element := range KeyValueStore {
+		if key == hash {
+			return element
+		} else {
+			continue
+		}
+	}
+	return ""
+}
+
 func (network *Network) SendFindContactMessage(contact *Contact) {
 	// TODO
 }
@@ -147,29 +158,6 @@ func (network *Network) SendFindDataMessage(hash string) {
 	// TODO
 }
 
-func (network *Network) SendStoreMessage(message RPC) bool {
-	Conn := message.TargetAddress + ":8000"
-	udpAddress, err := net.ResolveUDPAddr("udp4", Conn)
-	udpConnection, err := net.DialUDP("udp4", nil, udpAddress)
-	if err != nil {
-		fmt.Println(err)
-		return false
-	}
-	defer udpConnection.Close()
-	for {
-		data := []byte(JSONEncode(message))
-		_, err := udpConnection.Write(data)
-		if err != nil {
-			fmt.Println(err)
-			return false
-		}
-		buffer := make([]byte, 1024)
-		addr, _, err := udpConnection.ReadFromUDP(buffer)
-		if err != nil {
-			fmt.Println(err)
-			return false
-		}
-		fmt.Printf("RECEIVED: %s\n", string(buffer[0:addr]))
-		return true
-	}
+func (network *Network) SendStoreMessage(data []byte) {
+	// TODO
 }
