@@ -106,7 +106,7 @@ func (network *Network) Listen() {
 			awaitingResponseData := AwaitingResponseObject{currentTime, tailContact, decodedData.Sender}
 			network.awaitingResponseList.PushFront(awaitingResponseData)
 			pingRPC := NewRPC(network.routingTable.me, tailContact.Address, "PING", "")
-			network.SendPingMessage(pingRPC)
+			network.SendMessage(pingRPC)
 
 		} else {
 			network.routingTable.AddContact(decodedData.Sender) //Adds contact to start of the bucket
@@ -128,7 +128,7 @@ func (network *Network) Listen() {
 					responseType = "ADDED TO STORE"
 					responseContent = key
 				case "FINDVALUE":
-					data := network.LookForData(decodedData.COntent)
+					data := network.LookForData(decodedData.Content)
 					if data == "" {
 						responseType = "DATA NOT FOUND"
 						responseContent = data
@@ -190,17 +190,15 @@ func (network *Network) SendMessage(message RPC) bool {
 
 func (network *Network) AddToStore(message string) string {
 	hxMsg := hex.EncodeToString([]byte(message))
-	KeyValueStore[hxMsg] = message
+	network.routingTable.me.KeyValueStore[hxMsg] = message
 	return hxMsg
 }
 
 func (network *Network) LookForData(hash string) string {
-	for key, element := range KeyValueStore {
+	for key, element := range network.routingTable.me.KeyValueStore {
 		if key == hash {
 			return element
-		} else {
-			continue
-		}
+		} 
 	}
 	return ""
 }
