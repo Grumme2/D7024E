@@ -21,6 +21,8 @@ func (kademlia *Kademlia) LookupContact(target *Contact) *Contact {
 				alreadyused.Append([]Contact{contact})
 				shortlist.Append(contacts)
 				shortlist.Sort()
+				bucket := kademlia.Rt.buckets[kademlia.Rt.getBucketIndex(shortlist.contacts[i].ID)]
+				addToBucket(contact, *bucket)
 			}
 
 		}
@@ -38,7 +40,10 @@ func in(a Contact, list []Contact) bool {
 }
 
 func addToBucket(contact Contact, buck bucket) {
-	if buck.Len()<bucketsize && buck.list.{
+	if (buck.Len() < bucketSize) && buck.In(contact) {
+		buck.AddContact(contact)
+	} else {
+		//sping(buck.list.Front())
 		buck.AddContact(contact)
 	}
 
