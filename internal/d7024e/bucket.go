@@ -38,6 +38,7 @@ func (bucket *bucket) AddContact(contact Contact) {
 	}
 }
 
+
 func (bucket *bucket) removeFromBucket(contact *Contact) {
 	for elements := bucket.list.Front(); elements != nil; elements.Next() {
 		nID := elements.Value.(Contact).ID
@@ -47,6 +48,7 @@ func (bucket *bucket) removeFromBucket(contact *Contact) {
 		}
 	}
 }
+
 
 // GetContactAndCalcDistance returns an array of Contacts where
 // the distance has already been calculated
@@ -62,16 +64,35 @@ func (bucket *bucket) GetContactAndCalcDistance(target *KademliaID) []Contact {
 	return contacts
 }
 
+func (bucket *bucket) RemoveContact(contact Contact) {
+	for element := bucket.list.Front(); element != nil; element.Next() {
+		nID := element.Value.(Contact).ID
+		if contact.ID.Equals(nID) {
+			bucket.list.Remove(element)
+			return
+		}
+	}
+}
+
 // Len return the size of the bucket
 func (bucket *bucket) Len() int {
 	return bucket.list.Len()
 }
 
-func (bucket *bucket) In(Contact) bool {
-	for e := l.Front(); e != nil; e = e.Next() {
-		if e.Value == Contact {
-			return true
+
+func (bucket *bucket) IsContactInBucket(contact Contact) bool {
+	var element *list.Element
+	for e := bucket.list.Front(); e != nil; e = e.Next() {
+		nodeID := e.Value.(Contact).ID
+
+		if (contact).ID.Equals(nodeID) {
+			element = e
 		}
 	}
-	return false
+
+	if element == nil {
+		return false
+	} else {
+		return true
+	}
 }
