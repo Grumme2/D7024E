@@ -22,8 +22,6 @@ func (kademlia *Kademlia) LookupContact(target *Contact) []Contact {
 				alreadyused.Append([]Contact{contact})
 				shortlist.Append(contacts)
 				shortlist.Sort()
-				bucket := kademlia.Rt.buckets[kademlia.Rt.getBucketIndex(shortlist.contacts[i].ID)]
-				addToBucket(contact, *bucket)
 			}
 
 		}
