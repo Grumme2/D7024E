@@ -7,7 +7,7 @@ type Kademlia struct {
 
 var alpha = 3
 
-func (kademlia *Kademlia) LookupContact(target *Contact) *Contact {
+func (kademlia *Kademlia) LookupContact(target *Contact) []Contact {
 	closest := kademlia.Rt.FindClosestContacts(target.ID, alpha)
 	closestNode := closest[0]
 	shortlist := ContactCandidates{contacts: closest}
@@ -26,7 +26,9 @@ func (kademlia *Kademlia) LookupContact(target *Contact) *Contact {
 			}
 
 		}
+		shortlist.CutContacts(bucketSize)
 	}
+	return shortlist.contacts
 
 }
 
