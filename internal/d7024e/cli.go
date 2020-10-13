@@ -29,22 +29,48 @@ func (cli *cli) AwaitCommand(){
 	switch strings.ToUpper(inputSplit[0]) {
 		case "EXIT":
 			fmt.Println("EXIT command detected")
+			//TODO: Terminate node
 			return //Exits the function
-		case "PONG":
-			fmt.Println("PONG command detected")
+		case "PRINT":
+			if (len(inputSplit) > 1) {
+				fmt.Println("Printing test: " + inputSplit[1])
+			} else {
+				fmt.Println("Error! Invalid arguments!")
+			}
+		case "PUT":
+			if (len(inputSplit) == 2) {
+				fileUpload := inputSplit[1]
+				fmt.Println(fileUpload)
+				//Upload the file
+				//Output the hash of the object is upload was successful
+				//If unsuccessful, output an error message
+				fmt.Println("PUT")
+			} else {
+				fmt.Println("Error! Invalid arguments!")
+			}
+		case "GET":
+			if (len(inputSplit) == 2) {
+				hash := inputSplit[1]
+				fmt.Println(hash)
+				//Output the object returned from the hash if successful
+				//If unsuccessful, output an error message
+				fmt.Println("GET")
+			} else {
+				fmt.Println("Error! Invalid arguments!")
+			}
 		case "OK":
 			fmt.Println("OK command detected")
 		case "HELP":
-			fmt.Println("There is no one that can help you")
+			fmt.Println("Here are all available commands:")
+			fmt.Println("HELP - Shows a list of all available commands.")
+			fmt.Println("EXIT - Shuts down the node.")
+			fmt.Println("PUT <FILE> - Uploads the given file. Outputs the resulting hash if successful.")
+			fmt.Println("GET <HASH> - Returns the contents of the unhashed object.")
 		default:
-			fmt.Println("Command not recognised, type HELP for a list of commands")
+			fmt.Println("Command not recognised, type HELP for a list of commands.")
 	}
 
 	fmt.Println("")
 	//Await another command
 	cli.AwaitCommand()
-}
-
-func (cli *cli) CliPrint(print string){
-	fmt.Println(print)
 }
