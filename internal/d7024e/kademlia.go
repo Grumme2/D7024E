@@ -1,7 +1,6 @@
 package d7024e
 
 type Kademlia struct {
-
 	Rt      RoutingTable
 	network Network
 }
@@ -40,19 +39,10 @@ func in(a Contact, list []Contact) bool {
 	return false
 }
 
-func addToBucket(contact Contact, buck bucket) {
-	if (buck.Len() < bucketSize) && buck.In(contact) {
-		buck.AddContact(contact)
-	} else {
-		//sping(buck.list.Front())
-		buck.AddContact(contact)
-	}
-
-
 /*
 func (kademlia *Kademlia) CreateNode(){
 	network.Listen()
-	
+
 
 	myID := NewRandomKademliaID()
 	me := NewContact(myID, myIP, myID)
