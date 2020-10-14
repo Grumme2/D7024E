@@ -11,7 +11,6 @@ type Contact struct {
 	ID       *KademliaID
 	Address  string
 	distance *KademliaID
-	Kademlia *Kademlia
 }
 
 // NewContact returns a new instance of a Contact

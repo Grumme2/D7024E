@@ -1,14 +1,14 @@
 package d7024e
 
 type Kademlia struct {
-	Rt      RoutingTable
+	rt      RoutingTable
 	network Network
 }
 
 var alpha = 3
 
 func (kademlia *Kademlia) LookupContact(target *Contact) []Contact {
-	closest := kademlia.Rt.FindClosestContacts(target.ID, alpha)
+	closest := kademlia.rt.FindClosestContacts(target.ID, alpha)
 	closestNode := closest[0]
 	shortlist := ContactCandidates{contacts: closest}
 	alreadyused := ContactCandidates{contacts: []Contact{}}
@@ -17,7 +17,7 @@ func (kademlia *Kademlia) LookupContact(target *Contact) []Contact {
 		for i := 0; i < 3; i++ {
 			contact := shortlist.contacts[i]
 			if !in(contact, alreadyused.contacts) {
-				contacts := contact.Kademlia.network.SendFindContactMessage(target)
+				contacts := kademlia.network.SendFindContactMessage(target)
 				alreadyused.Append([]Contact{contact})
 				shortlist.Append(contacts)
 				shortlist.Sort()
