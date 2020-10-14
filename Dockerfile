@@ -1,5 +1,6 @@
 FROM golang:1.15-alpine
 
+
 RUN apk update && apk upgrade && \
 	apk add go git && \
 	git clone https://github.com/Grumme2/D7024E.git && \
