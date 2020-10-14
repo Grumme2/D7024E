@@ -13,7 +13,7 @@ func (kademlia *Kademlia) LookupContact(target *Contact) []Contact {
 	shortlist := ContactCandidates{contacts: closest}
 	alreadyused := ContactCandidates{contacts: []Contact{}}
 	for shortlist.contacts[0].distance.Less(closestNode.distance) && !shortlist.contacts[0].ID.Equals(target.ID) {
-		closestNode := shortlist.contacts[0]
+		closestNode = shortlist.contacts[0]
 		for i := 0; i < 3; i++ {
 			contact := shortlist.contacts[i]
 			if !in(contact, alreadyused.contacts) {
@@ -32,7 +32,7 @@ func (kademlia *Kademlia) LookupContact(target *Contact) []Contact {
 
 func in(a Contact, list []Contact) bool {
 	for _, b := range list {
-		if b == a {
+		if b.ID == a.ID {
 			return true
 		}
 	}

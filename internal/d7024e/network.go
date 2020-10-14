@@ -3,6 +3,7 @@ package d7024e
 import (
 	"container/list"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"net"
 	"time"
@@ -130,6 +131,8 @@ func (network *Network) Listen() {
 				case "FINDVALUE":
 					data := network.LookForData(decodedData.Content)
 					if data == "" {
+						closest := network.routingTable.FindClosestContacts(network.routingTable.me.ID, bucketSize)
+						data = network.KTriplesJSON(closest)
 						responseType = "DATA NOT FOUND"
 						responseContent = data
 					}else {
@@ -201,6 +204,16 @@ func (network *Network) LookForData(hash string) string {
 		} 
 	}
 	return ""
+}
+
+func (network *Network) KTriplesJSON (KClosest []Contact) string {
+	contactsJSON, err := json.Marshal(KClosest)
+	if err != nil {
+		fmt.Println(err)
+		return "ERROR"
+	}
+	contactsStr := string(contactsJSON)
+	return contactsStr
 }
 
 func (network *Network) SendFindContactMessage(contact *Contact) []Contact {
