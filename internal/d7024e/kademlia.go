@@ -5,10 +5,44 @@ type Kademlia struct {
 	network Network
 }
 
+var alpha = 3
+
+func (kademlia *Kademlia) LookupContact(target *Contact) []Contact {
+	closest := kademlia.rt.FindClosestContacts(target.ID, alpha)
+	closestNode := closest[0]
+	shortlist := ContactCandidates{contacts: closest}
+	alreadyused := ContactCandidates{contacts: []Contact{}}
+	for shortlist.contacts[0].distance.Less(closestNode.distance) && !shortlist.contacts[0].ID.Equals(target.ID) {
+		closestNode := shortlist.contacts[0]
+		for i := 0; i < 3; i++ {
+			contact := shortlist.contacts[i]
+			if !in(contact, alreadyused.contacts) {
+				contacts := kademlia.network.SendFindContactMessage(target)
+				alreadyused.Append([]Contact{contact})
+				shortlist.Append(contacts)
+				shortlist.Sort()
+			}
+
+		}
+		shortlist.CutContacts(bucketSize)
+	}
+	return shortlist.contacts
+
+}
+
+func in(a Contact, list []Contact) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
 /*
 func (kademlia *Kademlia) CreateNode(){
 	network.Listen()
-	
+
 
 	myID := NewRandomKademliaID()
 	me := NewContact(myID, myIP, myID)
@@ -45,6 +79,7 @@ func (kademlia *Kademlia) LookupContact(target *Contact) {
 	//1. see if exists in routingtable
 	//2. use rt.FindClosestContacts
 	//3. see if exists in closests
+
 }
 */
 

@@ -50,6 +50,11 @@ func (candidates *ContactCandidates) GetContacts(count int) []Contact {
 	return candidates.contacts[:count]
 }
 
+// cuts list of contacts at count
+func (candidates *ContactCandidates) CutContacts(count int) {
+	candidates.contacts = candidates.contacts[:count]
+}
+
 // Sort the Contacts in ContactCandidates
 func (candidates *ContactCandidates) Sort() {
 	sort.Sort(candidates)

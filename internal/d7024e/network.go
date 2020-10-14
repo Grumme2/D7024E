@@ -1,22 +1,22 @@
 package d7024e
 
 import (
+	"container/list"
 	"encoding/hex"
 	"fmt"
 	"net"
 	"time"
-	"container/list"
 )
 
 type Network struct {
-	routingTable *RoutingTable
+	routingTable         *RoutingTable
 	awaitingResponseList *list.List
 }
 
 type AwaitingResponseObject struct {
 	timestamp int64
-	oldNode Contact
-	newNode Contact
+	oldNode   Contact
+	newNode   Contact
 }
 
 func NewNetwork(rt *RoutingTable) Network {
@@ -94,9 +94,9 @@ func (network *Network) Listen() {
 		fmt.Printf("RECEIVED: %s\n", string(receivedData))
 
 		//True if contact already is in bucket
-		if(network.routingTable.buckets[network.routingTable.GetBucketIndex(decodedData.Sender.ID)].IsContactInBucket(decodedData.Sender)){
+		if (network.routingTable.buckets[network.routingTable.GetBucketIndex(decodedData.Sender.ID)].IsContactInBucket(decodedData.Sender)) {
 			network.routingTable.AddContact(decodedData.Sender) //Move contact to start of bucket
-		} else if (network.routingTable.IsBucketFull(decodedData.Sender.ID)){
+		} else if (network.routingTable.IsBucketFull(decodedData.Sender.ID)) {
 			//If bucket is full, the node pings the contact at the tail of the buckets list
 			//If previously mentioned contact fails to respond in x amount of time, it is dropped from the list and the new contact is added at the head
 			bucketIndex := network.routingTable.GetBucketIndex(decodedData.Sender.ID)
@@ -112,19 +112,19 @@ func (network *Network) Listen() {
 			network.routingTable.AddContact(decodedData.Sender) //Adds contact to start of the bucket
 		}
 
-		if (decodedData.MessageType != "NONE" && decodedData.MessageType != "UNDEFINED"){
+		if (decodedData.MessageType != "NONE" && decodedData.MessageType != "UNDEFINED") {
 			responseType := "UNDEFINED"
 			responseContent := "defaultNetworkResponse"
 
 			switch decodedData.MessageType {
-				case "PING":
-					responseType = "PONG"
-				case "PONG":
-					responseType = "OK"
-				case "OK":
-					responseType = "NONE"
+			case "PING":
+				responseType = "PONG"
+			case "PONG":
+				responseType = "OK"
+			case "OK":
+				responseType = "NONE"
 			}
-	
+
 			responseRPC := NewRPC(network.routingTable.me, decodedData.Sender.Address, responseType, responseContent)
 			responseData := JSONEncode(responseRPC)
 			response := []byte(responseData)
@@ -191,8 +191,9 @@ func (network *Network) LookForData(hash string) string {
 	return ""
 }
 
-func (network *Network) SendFindContactMessage(contact *Contact) {
-	// TODO
+func (network *Network) SendFindContactMessage(contact *Contact) []Contact {
+	contacts := network.routingTable.FindClosestContacts(contact.ID, bucketSize)
+	return contacts
 }
 
 func (network *Network) SendFindDataMessage(hash string) {
