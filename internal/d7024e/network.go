@@ -53,7 +53,7 @@ func (network *Network) CheckNodesAwaitingResponse() {
 		fmt.Println(currentTime - nodeTimestamp)
 		fmt.Println(e.Value.(AwaitingResponseObject).oldNode)
 		fmt.Println(e.Value.(AwaitingResponseObject).newNode)
-		if (currentTime - nodeTimestamp) >= 5 { //If 5 seconds or more have passed
+		if ((currentTime - nodeTimestamp) >= 5) { //If 5 seconds or more have passed
 			network.routingTable.RemoveContact(e.Value.(AwaitingResponseObject).oldNode)
 			network.routingTable.AddContact(e.Value.(AwaitingResponseObject).newNode)
 			fmt.Println("remove bucket")
@@ -94,9 +94,9 @@ func (network *Network) Listen() {
 		fmt.Printf("RECEIVED: %s\n", string(receivedData))
 
 		//True if contact already is in bucket
-		if network.routingTable.buckets[network.routingTable.getBucketIndex(decodedData.Sender.ID)].IsContactInBucket(decodedData.Sender) {
+		if (network.routingTable.buckets[network.routingTable.getBucketIndex(decodedData.Sender.ID)].IsContactInBucket(decodedData.Sender)) {
 			network.routingTable.AddContact(decodedData.Sender) //Move contact to start of bucket
-		} else if network.routingTable.isBucketFull(decodedData.Sender.ID) {
+		} else if (network.routingTable.isBucketFull(decodedData.Sender.ID)) {
 			//If bucket is full, the node pings the contact at the tail of the buckets list
 			//If previously mentioned contact fails to respond in x amount of time, it is dropped from the list and the new contact is added at the head
 			bucketIndex := network.routingTable.getBucketIndex(decodedData.Sender.ID)
@@ -112,7 +112,7 @@ func (network *Network) Listen() {
 			network.routingTable.AddContact(decodedData.Sender) //Adds contact to start of the bucket
 		}
 
-		if decodedData.MessageType != "NONE" && decodedData.MessageType != "UNDEFINED" {
+		if (decodedData.MessageType != "NONE" && decodedData.MessageType != "UNDEFINED") {
 			responseType := "UNDEFINED"
 			responseContent := "defaultNetworkResponse"
 
