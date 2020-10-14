@@ -60,6 +60,9 @@ func (network *Network) CheckNodesAwaitingResponse() {
 		}
 		//Else we do nothing, the old node remains and the new node is not added
 	}
+
+	time.Sleep(2 * time.Second) //Checks every two seconds
+	network.CheckNodesAwaitingResponse()
 }
 
 func (network *Network) TestCreateAwaitingReponseObjects() {
