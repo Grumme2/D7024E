@@ -94,12 +94,12 @@ func (network *Network) Listen() {
 		fmt.Printf("RECEIVED: %s\n", string(receivedData))
 
 		//True if contact already is in bucket
-		if (network.routingTable.buckets[network.routingTable.getBucketIndex(decodedData.Sender.ID)].IsContactInBucket(decodedData.Sender)) {
+		if (network.routingTable.buckets[network.routingTable.GetBucketIndex(decodedData.Sender.ID)].IsContactInBucket(decodedData.Sender)) {
 			network.routingTable.AddContact(decodedData.Sender) //Move contact to start of bucket
-		} else if (network.routingTable.isBucketFull(decodedData.Sender.ID)) {
+		} else if (network.routingTable.IsBucketFull(decodedData.Sender.ID)) {
 			//If bucket is full, the node pings the contact at the tail of the buckets list
 			//If previously mentioned contact fails to respond in x amount of time, it is dropped from the list and the new contact is added at the head
-			bucketIndex := network.routingTable.getBucketIndex(decodedData.Sender.ID)
+			bucketIndex := network.routingTable.GetBucketIndex(decodedData.Sender.ID)
 			tailContact := network.routingTable.buckets[bucketIndex].list.Back().Value.(Contact) //Vet ej om detta faktiskt stämmer
 			currentTime := time.Now().Unix()
 

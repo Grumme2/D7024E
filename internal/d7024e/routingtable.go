@@ -13,7 +13,7 @@ type RoutingTable struct {
 func NewRoutingTable(me Contact) *RoutingTable {
 	routingTable := &RoutingTable{}
 	for i := 0; i < IDLength*8; i++ {
-		routingTable.buckets[i] = newBucket()
+		routingTable.buckets[i] = NewBucket()
 	}
 	routingTable.me = me
 	return routingTable
@@ -61,7 +61,7 @@ func (routingTable *RoutingTable) FindClosestContacts(target *KademliaID, count 
 }
 
 // getBucketIndex get the correct Bucket index for the KademliaID
-func (routingTable *RoutingTable) getBucketIndex(id *KademliaID) int {
+func (routingTable *RoutingTable) GetBucketIndex(id *KademliaID) int {
 	distance := id.CalcDistance(routingTable.me.ID)
 	for i := 0; i < IDLength; i++ {
 		for j := 0; j < 8; j++ {
@@ -74,8 +74,8 @@ func (routingTable *RoutingTable) getBucketIndex(id *KademliaID) int {
 	return IDLength*8 - 1
 }
 
-func (routingTable *RoutingTable) isBucketFull(id *KademliaID) bool {
-	bucketIndex := routingTable.getBucketIndex(id)
+func (routingTable *RoutingTable) IsBucketFull(id *KademliaID) bool {
+	bucketIndex := routingTable.GetBucketIndex(id)
 	currentBucketSize := routingTable.buckets[bucketIndex].Len()
 	if (currentBucketSize >= bucketSize) {
 		return true
