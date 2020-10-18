@@ -1,11 +1,18 @@
-FROM golang:1.15-alpine
+FROM golang:alpine
 
+
+RUN mkdir /kademlia
+ADD . /kademlia/
+WORKDIR /kademlia
+RUN go build -o kademlia D7024E/cmd/main/main.go
+CMD ["./main"]
 
 RUN apk update && apk upgrade && \
 	apk add go git && \
 	git clone https://github.com/Grumme2/D7024E.git && \
-	cd D7024E && \
-	go run cmd/main/main.go
+	git switch dockerfix && \
+	cd D7024E/cmd/main && \
+	go build
 
 # Add the commands needed to put your compiled go binary in the container and
 # run it when the container starts.
