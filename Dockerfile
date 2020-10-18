@@ -1,11 +1,12 @@
 FROM golang:alpine
 
-
-RUN mkdir /kademlia
-ADD . /kademlia/
-WORKDIR /kademlia
-RUN go build -o kademlia cmd/main/main.go
-CMD ["./cmd/main/main"]
+RUN mkdir /app 
+ADD . /app/
+WORKDIR /app 
+RUN go build -o main .
+RUN adduser -S -D -H -h /app appuser
+USER appuser
+CMD ["./main"]
 
 # Add the commands needed to put your compiled go binary in the container and
 # run it when the container starts.
