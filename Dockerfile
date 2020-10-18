@@ -4,15 +4,8 @@ FROM golang:alpine
 RUN mkdir /kademlia
 ADD . /kademlia/
 WORKDIR /kademlia
-RUN go build -o kademlia D7024E/cmd/main/main.go
-CMD ["./main"]
-
-RUN apk update && apk upgrade && \
-	apk add go git && \
-	git clone https://github.com/Grumme2/D7024E.git && \
-	git switch dockerfix && \
-	cd D7024E/cmd/main && \
-	go build
+RUN go build -o kademlia cmd/main/main.go
+CMD ["./cmd/main/main"]
 
 # Add the commands needed to put your compiled go binary in the container and
 # run it when the container starts.
