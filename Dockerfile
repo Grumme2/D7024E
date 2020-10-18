@@ -3,10 +3,10 @@ FROM golang:alpine
 RUN mkdir /app 
 ADD . /app/
 WORKDIR /app 
-RUN go build -o main .
+RUN go build cmd/main/main.go
 RUN adduser -S -D -H -h /app appuser
 USER appuser
-CMD ["./main"]
+CMD ["./cmd/main/main"]
 
 # Add the commands needed to put your compiled go binary in the container and
 # run it when the container starts.
