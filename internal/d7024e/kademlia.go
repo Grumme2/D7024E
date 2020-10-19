@@ -84,7 +84,26 @@ func (kademlia *Kademlia) LookupContact(target *Contact) {
 */
 
 func (kademlia *Kademlia) LookupData(hash string) {
-	// TODO
+	newkademid := NewKademliaID(hash)
+	closest := kademlia.rt.FindClosestContacts(newkademid, alpha)
+	closestNode := closest[0]
+	shortlist := ContactCandidates{contacts: closest}
+	alreadyused := ContactCandidates{contacts: []Contact{}}
+	for shortlist.contacts[0].distance.Less(closestNode.distance) && !shortlist.contacts[0].ID.Equals(newkademid) {
+		closestNode := shortlist.contacts[0]
+		for i := 0; i < 3; i++ {
+			contact := shortlist.contacts[i]
+			if !in(contact, alreadyused.contacts) {
+				findValueRPC := NewRPC(kademlia.rt.me, contact.Address, "FINDVALUE", hash)
+				contacts := kademlia.network.SendMessage(findValueRPC)
+				alreadyused.Append([]Contact{contact})
+				shortlist.Append(contacts)
+				shortlist.Sort()
+				
+			} 
+		}
+		shortlist.CutContacts(bucketSize)
+	}
 }
 
 func (kademlia *Kademlia) Store(data []byte) {
