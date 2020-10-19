@@ -92,6 +92,10 @@ func (kademlia *Kademlia) LookupData(hash string) {
 	// TODO
 }
 
-func (kademlia *Kademlia) Store(data []byte) {
-	// TODO
+func (kademlia *Kademlia) Store(data string) {
+	closest := kademlia.LookupContact(&kademlia.network.routingTable.me)
+	for i := 0; i < len(closest); i++ {
+		rpc := NewRPC(kademlia.network.routingTable.me, closest[i].Address, "STORE", data)
+		kademlia.network.SendMessage(rpc)	
+	}
 }
