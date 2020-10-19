@@ -106,7 +106,7 @@ func (network *Network) Listen() {
 			awaitingResponseData := AwaitingResponseObject{currentTime, tailContact, decodedData.Sender}
 			network.awaitingResponseList.PushFront(awaitingResponseData)
 			pingRPC := NewRPC(network.routingTable.me, tailContact.Address, "PING", "")
-			network.SendPingMessage(pingRPC)
+			network.SendMessage(pingRPC)
 
 		} else {
 			network.routingTable.AddContact(decodedData.Sender) //Adds contact to start of the bucket
