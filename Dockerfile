@@ -1,11 +1,11 @@
-FROM golang:1.15-alpine
+FROM golang:alpine
 
-
-RUN apk update && apk upgrade && \
-	apk add go git && \
-	git clone https://github.com/Grumme2/D7024E.git && \
-	cd D7024E && \
-	go run cmd/main/main.go
+RUN mkdir /app 
+ADD . /app/
+WORKDIR /app 
+RUN go build -o kademlia cmd/main/main.go
+USER root
+CMD ["./kademlia"]
 
 # Add the commands needed to put your compiled go binary in the container and
 # run it when the container starts.
