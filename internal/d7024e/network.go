@@ -24,7 +24,7 @@ func NewNetwork(rt *RoutingTable) Network {
 	return Network{rt, list.New()}
 }
 
-func GetLocalIP() string {
+func (network *Network) GetLocalIP() string {
 	addrs, err := net.InterfaceAddrs()
 
 	if err != nil {
