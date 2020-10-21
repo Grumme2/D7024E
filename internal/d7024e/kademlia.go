@@ -1,5 +1,9 @@
 package d7024e
 
+import(
+	"time"
+)
+
 type Kademlia struct {
 	network Network
 }
@@ -52,12 +56,25 @@ func (kademlia *Kademlia) LookupData(hash string) string {
 			if !in(contact, alreadyused.contacts) {
 				findValueRPC := NewRPC(kademlia.network.routingTable.me, contact.Address, "FINDVALUE", hash)
 				kademlia.network.SendMessage(findValueRPC)
-				result, founddata := kademlia.network.SendFindDataMessage()
+
+				for i := 0; i < 11; i++ {
+					time.Sleep(500 * time.Millisecond)
+					foundData, data := kademlia.network.SendFindDataMessage()
+					_ = data //Ignores "data declared and not used" compilation error
+					if (foundData || !foundData){ //If not undefined
+						break //Exit for loop
+					}
+					if (i == 10){
+						return "ERROR! Did not get response in time"
+					}
+				}
+
+				foundData, data := kademlia.network.SendFindDataMessage()
 				var contacts []Contact
-				if founddata {
-					return result
+				if foundData {
+					return data
 				}else{
-					contacts = kademlia.network.KTriples(result)
+					contacts = kademlia.network.KTriples(data)
 				}
 
 				alreadyused.Append([]Contact{contact})
