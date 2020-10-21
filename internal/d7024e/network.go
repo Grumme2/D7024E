@@ -195,7 +195,7 @@ func (network *Network) SendMessage(message RPC) bool {
 }
 
 func (network *Network) AddToStore(message string) string {
-	hxMsg := hex.EncodeToString([]byte(message))
+	hxMsg := MakeHash(message)
 	network.routingTable.me.KeyValueStore[hxMsg] = message
 	return hxMsg
 }
@@ -207,6 +207,17 @@ func (network *Network) LookForData(hash string) string {
 		} 
 	}
 	return ""
+}
+
+func MakeHash (message string) string {
+	hx := hex.EncodeToString([]byte(message))
+	return hx
+}
+
+func (network *Network) storeRPC (message RPC) {
+	hash := MakeHash(message.Content)
+	fmt.Printf(hash)
+	network.SendMessage(message)
 }
 
 func (network *Network) KTriplesJSON (KClosest []Contact) string {
