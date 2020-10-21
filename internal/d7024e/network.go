@@ -14,6 +14,9 @@ type Network struct {
 	awaitingResponseList *list.List
 }
 
+var responseContentG string
+var responseDatafoundG bool
+
 type AwaitingResponseObject struct {
 	timestamp int64
 	oldNode   Contact
@@ -138,9 +141,13 @@ func (network *Network) Listen() {
 						data = network.KTriplesJSON(closest)
 						responseType = "DATA NOT FOUND"
 						responseContent = data
+						responseContentG = responseContent
+						responseDatafoundG = false
 					}else {
 						responseType = "DATA FOUND"
 						responseContent = data
+						responseContentG = responseContent
+						responseDatafoundG = true
 					}
 			}
 
@@ -230,15 +237,27 @@ func (network *Network) KTriplesJSON (KClosest []Contact) string {
 	return contactsStr
 }
 
+func (network *Network) KTriples (KClosest string)[]Contact {
+	var contacts []Contact
+	err := json.Unmarshal([]byte(KClosest),contacts)
+	if err != nil {
+		fmt.Println(err)
+		//return "ERROR"
+	}
+
+	return contacts
+}
+
 func (network *Network) SendFindContactMessage(contact *Contact) []Contact {
 	contacts := network.routingTable.FindClosestContacts(contact.ID, bucketSize)
 	return contacts
 }
 
-func (network *Network) SendFindDataMessage(hash string) {
-	// TODO
+func (network *Network) SendFindDataMessage() (string, bool){
+	
+	return responseContentG,responseDatafoundG
 }
 
-func (network *Network) SendStoreMessage(data []byte) {
+func (network *Network) SendStoreMessage(data []byte){
 	// TODO
 }

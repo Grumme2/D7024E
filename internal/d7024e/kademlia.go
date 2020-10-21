@@ -38,6 +38,41 @@ func in(a Contact, list []Contact) bool {
 	return false
 }
 
+
+func (kademlia *Kademlia) LookupData(hash string) string {
+	newkademid := NewKademliaID(hash)
+	closest := kademlia.network.routingTable.FindClosestContacts(newkademid, alpha)
+	closestNode := closest[0]
+	shortlist := ContactCandidates{contacts: closest}
+	alreadyused := ContactCandidates{contacts: []Contact{}}
+	for shortlist.contacts[0].distance.Less(closestNode.distance) && !shortlist.contacts[0].ID.Equals(newkademid) {
+		closestNode = shortlist.contacts[0]
+		for i := 0; i < 3; i++ {
+			contact := shortlist.contacts[i]
+			if !in(contact, alreadyused.contacts) {
+				findValueRPC := NewRPC(kademlia.network.routingTable.me, contact.Address, "FINDVALUE", hash)
+				kademlia.network.SendMessage(findValueRPC)
+				result, founddata := kademlia.network.SendFindDataMessage()
+				var contacts []Contact
+				if founddata {
+					return result
+				}else{
+					contacts = kademlia.network.KTriples(result)
+				}
+
+				alreadyused.Append([]Contact{contact})
+				shortlist.Append(contacts)
+				shortlist.Sort()
+				
+			} 
+		}
+		shortlist.CutContacts(bucketSize)
+	}
+	return kademlia.network.KTriplesJSON(shortlist.contacts)
+}
+
+
+
 /*
 func (kademlia *Kademlia) CreateNode(){
 	network.Listen()
