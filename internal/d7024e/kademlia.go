@@ -44,6 +44,7 @@ func in(a Contact, list []Contact) bool {
 
 
 func (kademlia *Kademlia) LookupData(hash string) string {
+	kademlia.network.lookUpDataResponse = LookUpDataResponse{} //Resets LookUpDataResponse so we dont collect old results
 	newkademid := NewKademliaID(hash)
 	closest := kademlia.network.routingTable.FindClosestContacts(newkademid, alpha)
 	closestNode := closest[0]
