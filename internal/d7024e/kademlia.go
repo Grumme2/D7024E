@@ -86,6 +86,6 @@ func (kademlia *Kademlia) Store(data string) {
 	closest := kademlia.LookupContact(&kademlia.network.routingTable.me)
 	for i := 0; i < len(closest); i++ {
 		rpc := NewRPC(kademlia.network.routingTable.me, closest[i].Address, "STORE", data)
-		kademlia.network.SendMessage(rpc)	
+		kademlia.network.storeRPC(rpc)	
 	}
 }
