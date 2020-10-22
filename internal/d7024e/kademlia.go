@@ -1,6 +1,7 @@
 package d7024e
 
-import(
+import (
+	"fmt"
 	"time"
 )
 
@@ -10,26 +11,50 @@ type Kademlia struct {
 
 var alpha = 3
 
-func (kademlia *Kademlia) LookupContact(target *Contact) []Contact {
-	closest := kademlia.network.routingTable.FindClosestContacts(target.ID, alpha)
-	closestNode := closest[0]
-	shortlist := ContactCandidates{contacts: closest}
+func (kademlia *Kademlia) LookupContact(target *Contact) string {
+	shortlist := ContactCandidates{kademlia.network.routingTable.FindClosestContacts(target.ID, alpha)}
 	alreadyused := ContactCandidates{contacts: []Contact{}}
+	closestNode := NewContact(NewKademliaID("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"), "")
+	closestNode.distance = NewKademliaID("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
+	less := shortlist.contacts[0].distance.Less(closestNode.distance)
+	equal := shortlist.contacts[0].ID.Equals(target.ID)
+	fmt.Println(less)
+	fmt.Println(equal)
 	for shortlist.contacts[0].distance.Less(closestNode.distance) && !shortlist.contacts[0].ID.Equals(target.ID) {
 		closestNode = shortlist.contacts[0]
+		fmt.Println(closestNode.ID)
 		for i := 0; i < 3; i++ {
 			contact := shortlist.contacts[i]
 			if !in(contact, alreadyused.contacts) {
-				contacts := kademlia.network.SendFindContactMessage(target)
+				findValueRPC := NewRPC(kademlia.network.routingTable.me, contact.Address, "FINDNODE", "")
+				kademlia.network.SendMessage(findValueRPC)
+
+				for j := 0; j < 11; j++ {
+					fmt.Println("TEST")
+					time.Sleep(500 * time.Millisecond)
+					var data string
+					data = kademlia.network.SendFindContactMessage()
+					_ = data        //Ignores "data declared and not used" compilation error
+					if data != "" { //If not undefined
+						break //Exit for loop
+					}
+					fmt.Println(data)
+					if j == 10 {
+						fmt.Printf("hej")
+						return "ERROR! Did not get response in time"
+					}
+				}
+				data := kademlia.network.SendFindContactMessage()
+				contacts := kademlia.network.KTriples(data)
+
 				alreadyused.Append([]Contact{contact})
 				shortlist.Append(contacts)
 				shortlist.Sort()
 			}
-
 		}
 		shortlist.CutContacts(bucketSize)
 	}
-	return shortlist.contacts
+	return kademlia.network.KTriplesJSON(shortlist.contacts)
 
 }
 
@@ -41,7 +66,6 @@ func in(a Contact, list []Contact) bool {
 	}
 	return false
 }
-
 
 func (kademlia *Kademlia) LookupData(hash string) string {
 	kademlia.network.lookUpDataResponse = LookUpDataResponse{} //Resets LookUpDataResponse so we dont collect old results
@@ -61,11 +85,11 @@ func (kademlia *Kademlia) LookupData(hash string) string {
 				for i := 0; i < 11; i++ {
 					time.Sleep(500 * time.Millisecond)
 					foundData, data := kademlia.network.SendFindDataMessage()
-					_ = data //Ignores "data declared and not used" compilation error
-					if (foundData || !foundData){ //If not undefined
+					_ = data                     //Ignores "data declared and not used" compilation error
+					if foundData || !foundData { //If not undefined
 						break //Exit for loop
 					}
-					if (i == 10){
+					if i == 10 {
 						return "ERROR! Did not get response in time"
 					}
 				}
@@ -74,22 +98,20 @@ func (kademlia *Kademlia) LookupData(hash string) string {
 				var contacts []Contact
 				if foundData {
 					return data
-				}else{
+				} else {
 					contacts = kademlia.network.KTriples(data)
 				}
 
 				alreadyused.Append([]Contact{contact})
 				shortlist.Append(contacts)
 				shortlist.Sort()
-				
-			} 
+
+			}
 		}
 		shortlist.CutContacts(bucketSize)
 	}
 	return kademlia.network.KTriplesJSON(shortlist.contacts)
 }
-
-
 
 /*
 func (kademlia *Kademlia) CreateNode(){
@@ -136,9 +158,10 @@ func (kademlia *Kademlia) LookupContact(target *Contact) {
 */
 
 func (kademlia *Kademlia) Store(data string) {
-	closest := kademlia.LookupContact(&kademlia.network.routingTable.me)
+	closestJson := kademlia.LookupContact(&kademlia.network.routingTable.me)
+	closest := kademlia.network.KTriples(closestJson)
 	for i := 0; i < len(closest); i++ {
 		rpc := NewRPC(kademlia.network.routingTable.me, closest[i].Address, "STORE", data)
-		kademlia.network.storeRPC(rpc)	
+		kademlia.network.storeRPC(rpc)
 	}
 }
