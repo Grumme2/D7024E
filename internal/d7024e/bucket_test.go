@@ -40,3 +40,19 @@ func TestRemoveFromBucket (t *testing.T) {
 		t.Errorf("Cant remove contact!")
 	}
 }
+
+func TestIsContactInBucket (t *testing.T) {
+	buck := NewBucket()
+	conOne := NewContact(NewRandomKademliaID(), "localhost:8000")
+	conTwo := NewContact(NewRandomKademliaID(), "localhost:8001")
+	conThree := NewContact(NewRandomKademliaID(), "localhost:8002")
+	conFour := NewContact(NewRandomKademliaID(), "localhost:8003")
+	buck.AddContact(conOne)
+	buck.AddContact(conTwo)
+	buck.AddContact(conThree)
+	buck.AddContact(conFour)
+	contactInBucket := buck.IsContactInBucket(conFour)
+	if !contactInBucket {
+		t.Errorf("Contact not in bucket!")
+	}
+}
