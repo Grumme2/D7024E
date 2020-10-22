@@ -49,12 +49,12 @@ func in(a Contact, list []Contact) bool {
 
 func (kademlia *Kademlia) LookupData(hash string) (bool, string, Contact) {
 	kademlia.network.lookUpDataResponse = LookUpDataResponse{} //Resets LookUpDataResponse so we dont collect old results
-	newkademid := NewKademliaID(hash)
-	closest := kademlia.network.routingTable.FindClosestContacts(newkademid, alpha)
+	newkademid := NewKademliaID(&hash)
+	closest := kademlia.network.routingTable.FindClosestContacts(&newkademid, alpha)
 	closestNode := closest[0]
 	shortlist := ContactCandidates{contacts: closest}
 	alreadyused := ContactCandidates{contacts: []Contact{}}
-	for shortlist.contacts[0].distance.Less(closestNode.distance) && !shortlist.contacts[0].ID.Equals(newkademid) {
+	for shortlist.contacts[0].distance.Less(closestNode.distance) && !shortlist.contacts[0].ID.Equals(&newkademid) {
 		closestNode = shortlist.contacts[0]
 		for i := 0; i < 3; i++ {
 			contact := shortlist.contacts[i]
