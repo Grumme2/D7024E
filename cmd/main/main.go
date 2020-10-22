@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	me := d7024e.NewContact(d7024e.NewRandomKademliaID(), "localhost")
+	me := d7024e.NewContact(d7024e.NewRandomKademliaID(), d7024e.GetLocalIP())
 	rt := d7024e.NewRoutingTable(me)
 	network := d7024e.NewNetwork(rt)
 	kademlia := d7024e.NewKademlia(&network)

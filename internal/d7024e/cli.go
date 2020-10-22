@@ -78,7 +78,7 @@ func (cli *cli) AwaitCommand(){
 		case "OK":
 			fmt.Println("OK command detected")
 		case "WHATISMYIP":
-			ip := cli.kademlia.network.GetLocalIP()
+			ip := GetLocalIP()
 			fmt.Println("Your IP is " + ip)
 		case "PING":
 			if (len(inputSplit) == 2) {
@@ -99,7 +99,7 @@ func (cli *cli) AwaitCommand(){
 		case "MYCONTACT":
 			fmt.Println("My ID and Address")
 			fmt.Println(cli.kademlia.network.routingTable.me.ID)
-			fmt.Println(cli.kademlia.network.GetLocalIP())
+			fmt.Println(GetLocalIP())
 		case "HELP":
 			fmt.Println("Here are all available commands:")
 			fmt.Println("HELP - Shows a list of all available commands.")
