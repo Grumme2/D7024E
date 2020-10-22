@@ -8,16 +8,38 @@ import (
 )
 
 func TestRoutingTable(t *testing.T) {
-	rt := NewRoutingTable(NewContact(NewKademliaID("FFFFFFFF00000000000000000000000000000000"), "localhost:8000"))
+	mestr := "FFFFFFFF00000000000000000000000000000000"
+	str1 := "FFFFFFFF00000000000000000000000000000000"
+	str2 := "1111111100000000000000000000000000000000"
+	str3 := "1111111200000000000000000000000000000000"
+	str4 := "1111111300000000000000000000000000000000"
+	str5 := "1111111400000000000000000000000000000000"
+	str6 := "2111111400000000000000000000000000000000"
 
-	rt.AddContact(NewContact(NewKademliaID("FFFFFFFF00000000000000000000000000000000"), "localhost:8001"))
-	rt.AddContact(NewContact(NewKademliaID("1111111100000000000000000000000000000000"), "localhost:8002"))
-	rt.AddContact(NewContact(NewKademliaID("1111111200000000000000000000000000000000"), "localhost:8002"))
-	rt.AddContact(NewContact(NewKademliaID("1111111300000000000000000000000000000000"), "localhost:8002"))
-	rt.AddContact(NewContact(NewKademliaID("1111111400000000000000000000000000000000"), "localhost:8002"))
-	rt.AddContact(NewContact(NewKademliaID("2111111400000000000000000000000000000000"), "localhost:8002"))
+	meid := NewKademliaID(&mestr)
+	id1 := NewKademliaID(&str1)
+	id2 := NewKademliaID(&str2)
+	id3 := NewKademliaID(&str3)
+	id4 := NewKademliaID(&str4)
+	id5 := NewKademliaID(&str5)
+	id6 := NewKademliaID(&str6)
 
-	contacts := rt.FindClosestContacts(NewKademliaID("2111111400000000000000000000000000000000"), 20)
+	rt := NewRoutingTable(NewContact(&meid, "localhost"))
+	con1 := NewContact(&id1, "localhost")
+	con2 := NewContact(&id2, "localhost")
+	con3 := NewContact(&id3, "localhost")
+	con4 := NewContact(&id4, "localhost")
+	con5 := NewContact(&id5, "localhost")
+	con6 := NewContact(&id6, "localhost")
+
+	rt.AddContact(con1)
+	rt.AddContact(con2)
+	rt.AddContact(con3)
+	rt.AddContact(con4)
+	rt.AddContact(con5)
+	rt.AddContact(con6)
+
+	contacts := rt.FindClosestContacts(&id6, 20)
 
 	assert.Equal(t, contacts[0].String(), `contact("2111111400000000000000000000000000000000", "localhost:8002")`)
 	assert.Equal(t, contacts[1].String(), `contact("1111111400000000000000000000000000000000", "localhost:8002")`)
@@ -29,39 +51,78 @@ func TestRoutingTable(t *testing.T) {
 }
 
 func TestRemoveContact(t *testing.T) {
-	kadID := NewKademliaID("FFFFFFFF00000000000000000000000000000000")
-	me := NewContact(kadID, "localhost:8000")
-	rt := NewRoutingTable(me)
-	con := NewContact(NewKademliaID("1111111100000000000000000000000000000000"), "localhost:8002")
-	rt.AddContact(NewContact(NewKademliaID("FFFFFFFF00000000000000000000000000000000"), "localhost:8001"))
-	rt.AddContact(con)
-	rt.AddContact(NewContact(NewKademliaID("1111111200000000000000000000000000000000"), "localhost:8002"))
-	index := rt.GetBucketIndex(kadID)
-	rt.buckets[index].RemoveContact(con)
-	conInBucket := rt.buckets[index].IsContactInBucket(con)
+	mestr := "FFFFFFFF00000000000000000000000000000000"
+	str1 := "FFFFFFFF00000000000000000000000000000000"
+	str2 := "1111111100000000000000000000000000000000"
+	str3 := "1111111200000000000000000000000000000000"
+	str4 := "1111111300000000000000000000000000000000"
+	str5 := "1111111400000000000000000000000000000000"
+	str6 := "2111111400000000000000000000000000000000"
+
+	meid := NewKademliaID(&mestr)
+	id1 := NewKademliaID(&str1)
+	id2 := NewKademliaID(&str2)
+	id3 := NewKademliaID(&str3)
+	id4 := NewKademliaID(&str4)
+	id5 := NewKademliaID(&str5)
+	id6 := NewKademliaID(&str6)
+
+	rt := NewRoutingTable(NewContact(&meid, "localhost"))
+	con1 := NewContact(&id1, "localhost")
+	con2 := NewContact(&id2, "localhost")
+	con3 := NewContact(&id3, "localhost")
+	con4 := NewContact(&id4, "localhost")
+	con5 := NewContact(&id5, "localhost")
+	con6 := NewContact(&id6, "localhost")
+
+	rt.AddContact(con1)
+	rt.AddContact(con2)
+	rt.AddContact(con3)
+	rt.AddContact(con4)
+	rt.AddContact(con5)
+	rt.AddContact(con6)
+	index := rt.GetBucketIndex(&id3)
+	rt.buckets[index].RemoveContact(con3)
+	conInBucket := rt.buckets[index].IsContactInBucket(con3)
 	if conInBucket {
 		t.Errorf("Cant remove contact!")
 	}
 }
 
 func TestFindClosestContacts(t *testing.T) {
-	kadID := NewKademliaID("FFFFFFFF00000000000000000000000000000000")
-	me := NewContact(kadID, "localhost:8000")
-	rt := NewRoutingTable(me)
-	con := NewContact(NewKademliaID("1111111100000000000000000000000000000000"), "localhost:8002")
-	rt.AddContact(NewContact(NewKademliaID("FFFFFFFF00000000000000000000000000000000"), "localhost:8001"))
+
+	mestr := "FFFFFFFF00000000000000000000000000000000"
+	str1 := "FFFFFFFF00000000000000000000000000000000"
+	str2 := "1111111100000000000000000000000000000000"
+	str3 := "1111111200000000000000000000000000000000"
+	str4 := "2111111300000000000000000000000000000000"
+	str6 := "2111111400000000000000000000000000000000"
+
+	meid := NewKademliaID(&mestr)
+	id1 := NewKademliaID(&str1)
+	id2 := NewKademliaID(&str2)
+	id3 := NewKademliaID(&str3)
+	id4 := NewKademliaID(&str4)
+	id6 := NewKademliaID(&str6)
+
+	rt := NewRoutingTable(NewContact(&meid, "localhost"))
+	con1 := NewContact(&id1, "localhost")
+	con := NewContact(&id2, "localhost")
+	notEvenClose := NewContact(&id3, "localhost")
+	nextClosest := NewContact(&id4, "localhost")
+	closestCon := NewContact(&id6, "localhost")
+
+	rt.AddContact(con1)
 	rt.AddContact(con)
-	closestCon := NewContact(NewKademliaID("2111111400000000000000000000000000000000"), "localhost:8002")
-	nextClosest := NewContact(NewKademliaID("2111111300000000000000000000000000000000"), "localhost:8002")
-	notEvenClose := NewContact(NewKademliaID("1111111200000000000000000000000000000000"), "localhost:8002")
 	rt.AddContact(notEvenClose)
-	rt.AddContact(closestCon)
 	rt.AddContact(nextClosest)
-	close := rt.FindClosestContacts(NewKademliaID("2111111400000000000000000000000000000000"), 2)
+	rt.AddContact(closestCon)
+
+	close := rt.FindClosestContacts(&id6, 2)
 	assert.Equal(t, close[0].ID, closestCon.ID)
 	assert.Equal(t, close[1].ID, nextClosest.ID)
 	rt.RemoveContact(closestCon)
-	newClose := rt.FindClosestContacts(NewKademliaID("2111111400000000000000000000000000000000"), 2)
+	newClose := rt.FindClosestContacts(&id6, 2)
 	assert.Equal(t, newClose[0].ID, nextClosest.ID)
 	assert.Equal(t, newClose[1].ID, con.ID)
 }
