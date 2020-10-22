@@ -62,7 +62,7 @@ func (kademlia *Kademlia) LookupData(hash string) (bool, string, Contact) {
 				findValueRPC := NewRPC(kademlia.network.routingTable.me, contact.Address, "FINDVALUE", hash)
 				kademlia.network.SendMessage(findValueRPC)
 
-				for i := 0; i < 11; i++ {
+				for j := 0; j < 11; j++ {
 					time.Sleep(500 * time.Millisecond)
 					foundData, data, node := kademlia.network.SendFindDataMessage()
 					_ = data //Ignores "data declared and not used" compilation error
