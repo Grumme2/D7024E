@@ -19,6 +19,7 @@ type Network struct {
 type LookUpDataResponse struct {
 	dataFound bool
 	data      string
+	node      Contact
 }
 
 type LookUpContactResponse struct {
@@ -37,7 +38,7 @@ func NewNetwork(rt *RoutingTable) Network {
 	return Network{rt, list.New(), emptyLookUpData, emptyLookUpContact}
 }
 
-func (network *Network) GetLocalIP() string {
+func GetLocalIP() string {
 	addrs, err := net.InterfaceAddrs()
 
 	if err != nil {
@@ -106,128 +107,114 @@ func (network *Network) Listen() {
 	for {
 		n, addr, err := connection.ReadFromUDP(buffer)
 		receivedData := buffer[0:n]
-		decodedData := JSONDecode(receivedData)
-
-		fmt.Printf("RECEIVED: %s\n", string(receivedData))
-
-		//True if contact already is in bucket
-		if network.routingTable.buckets[network.routingTable.GetBucketIndex(decodedData.Sender.ID)].IsContactInBucket(decodedData.Sender) {
-			network.routingTable.AddContact(decodedData.Sender) //Move contact to start of bucket
-		} else if network.routingTable.IsBucketFull(decodedData.Sender.ID) {
-			//If bucket is full, the node pings the contact at the tail of the buckets list
-			//If previously mentioned contact fails to respond in x amount of time, it is dropped from the list and the new contact is added at the head
-			bucketIndex := network.routingTable.GetBucketIndex(decodedData.Sender.ID)
-			tailContact := network.routingTable.buckets[bucketIndex].list.Back().Value.(Contact) //Vet ej om detta faktiskt stämmer
-			currentTime := time.Now().Unix()
-
-			awaitingResponseData := AwaitingResponseObject{currentTime, tailContact, decodedData.Sender}
-			network.awaitingResponseList.PushFront(awaitingResponseData)
-			pingRPC := NewRPC(network.routingTable.me, tailContact.Address, "PING", "")
-			network.SendMessage(pingRPC)
-
-		} else {
-			network.routingTable.AddContact(decodedData.Sender) //Adds contact to start of the bucket
-		}
-		fmt.Println(decodedData.MessageType)
-		if (decodedData.MessageType != "NONE") && (decodedData.MessageType != "UNDEFINED") {
-			fmt.Println("\n \n ENTER CHECK \n \n ")
-			responseType := "UNDEFINED"
-			responseContent := "defaultNetworkResponse"
-
-			switch decodedData.MessageType {
-			case "PING":
-				responseType = "PONG"
-			case "PONG":
-				responseType = "OK"
-			case "OK":
-				responseType = "NONE"
-			case "STORE":
-				key := network.AddToStore(decodedData.Content)
-				responseType = "ADDED TO STORE"
-				responseContent = key
-			case "FINDVALUE":
-				dataFound, data := network.LookForData(decodedData.Content)
-				if dataFound {
-					responseType = "FINDVALUE_RESPONSE"
-					lookupResponse := LookUpDataResponse{true, data}
-					responseContent = network.JSONEncodeLookUpDataResponse(lookupResponse)
-				} else {
-					responseType = "FINDVALUE_RESPONSE"
-					closest := network.routingTable.FindClosestContacts(network.routingTable.me.ID, bucketSize)
-					closestEncoded := network.KTriplesJSON(closest)
-					lookupResponse := LookUpDataResponse{false, closestEncoded}
-					responseContent = network.JSONEncodeLookUpDataResponse(lookupResponse)
-				}
-			case "FINDVALUE_RESPONSE":
-				var data = network.JSONDecodeLookUpDataResponse(decodedData.Content)
-				network.lookUpDataResponse = data
-				responseType = "NONE"
-			case "FINDNODE":
-				responseType = "FINDNODE_RESPONSE"
-				closest := network.routingTable.FindClosestContacts(network.routingTable.me.ID, bucketSize)
-				//fmt.Println(closest)
-				responseContent = network.KTriplesJSON(closest)
-				//fmt.Println(closestEncoded)
-
-			case "FINDNODE_RESPONSE":
-				fmt.Println("FFFFFFFFFFUUUUUUUUCCCCCCCCKKKKKKKKKK")
-				network.lookUpContactResponse = LookUpContactResponse{decodedData.Content}
-				fmt.Println(network.lookUpContactResponse)
-				responseType = "NONE"
-			}
-
-			responseRPC := NewRPC(network.routingTable.me, decodedData.Sender.Address, responseType, responseContent)
-			responseData := JSONEncode(responseRPC)
-			response := []byte(responseData)
-
-			fmt.Printf("SENT: %s\n", string(response))
-
-			_, err = connection.WriteToUDP(response, addr)
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-		} else { //No response if the messagetype is NONE or UNDEFINED
-			fmt.Println("Received 'OK' or 'UNDEFINED' message. Will not respond.")
-		}
+		network.ListenHandler(receivedData, connection, addr)
+		_ = err
 	}
 }
 
-func (network *Network) SendMessage(message RPC) bool {
+func (network *Network) SendMessage(message RPC) {
 	CONNECT := message.TargetAddress + ":8000" //Hardcoded port
 
 	s, err := net.ResolveUDPAddr("udp4", CONNECT)
 	c, err := net.DialUDP("udp4", nil, s)
 	if err != nil {
 		fmt.Println(err)
-		return false
+		return
 	}
 
 	defer c.Close()
 
 	for {
 		data := []byte(JSONEncode(message))
+		fmt.Println("SENT:\n", string(data))
 		_, err = c.Write(data)
 
 		if err != nil {
 			fmt.Println(err)
-			return false
+			return
 		}
+		return
+	}
+}
 
-		buffer := make([]byte, 1024)
-		n, _, err := c.ReadFromUDP(buffer)
-		if err != nil {
-			fmt.Println(err)
-			return false
+func (network *Network) ListenHandler(receivedData []byte, connection *net.UDPConn, addr *net.UDPAddr) {
+	decodedData := JSONDecode(receivedData)
+
+	fmt.Println("RECEIVED:\n", string(receivedData))
+
+	//True if contact already is in bucket
+	if network.routingTable.buckets[network.routingTable.GetBucketIndex(decodedData.Sender.ID)].IsContactInBucket(decodedData.Sender) {
+		network.routingTable.AddContact(decodedData.Sender) //Move contact to start of bucket
+	} else if network.routingTable.IsBucketFull(decodedData.Sender.ID) {
+		//If bucket is full, the node pings the contact at the tail of the buckets list
+		//If previously mentioned contact fails to respond in x amount of time, it is dropped from the list and the new contact is added at the head
+		bucketIndex := network.routingTable.GetBucketIndex(decodedData.Sender.ID)
+		tailContact := network.routingTable.buckets[bucketIndex].list.Back().Value.(Contact) //Vet ej om detta faktiskt stämmer
+		currentTime := time.Now().Unix()
+
+		awaitingResponseData := AwaitingResponseObject{currentTime, tailContact, decodedData.Sender}
+		network.awaitingResponseList.PushFront(awaitingResponseData)
+		pingRPC := NewRPC(network.routingTable.me, tailContact.Address, "PING", "")
+		network.SendMessage(pingRPC)
+	} else {
+		network.routingTable.AddContact(decodedData.Sender) //Adds contact to start of the bucket
+	}
+
+	responseType := "UNDEFINED"
+	responseContent := "defaultNetworkResponse"
+
+	switch decodedData.MessageType {
+	case "PING":
+		responseType = "PONG"
+	case "OK":
+		responseType = "NONE"
+	case "STORE":
+		key := network.AddToStore(decodedData.Content)
+		responseType = "OK"
+		responseContent = key
+	case "FINDVALUE":
+		dataFound, data := network.LookForData(decodedData.Content)
+		if dataFound {
+			responseType = "FINDVALUE_RESPONSE"
+			lookupResponse := LookUpDataResponse{true, data, network.routingTable.me}
+			responseContent = network.JSONEncodeLookUpDataResponse(lookupResponse)
+		} else {
+			responseType = "FINDVALUE_RESPONSE"
+			closest := network.routingTable.FindClosestContacts(network.routingTable.me.ID, bucketSize)
+			closestEncoded := network.KTriplesJSON(closest)
+			lookupResponse := LookUpDataResponse{false, closestEncoded, network.routingTable.me}
+			responseContent = network.JSONEncodeLookUpDataResponse(lookupResponse)
 		}
+	case "FINDVALUE_RESPONSE":
+		var data = network.JSONDecodeLookUpDataResponse(decodedData.Content)
+		network.lookUpDataResponse = data
+		responseType = "NONE"
+	case "FINDNODE":
+		responseType = "FINDNODE_RESPONSE"
+		closest := network.routingTable.FindClosestContacts(network.routingTable.me.ID, bucketSize)
+		//fmt.Println(closest)
+		responseContent = network.KTriplesJSON(closest)
+		//fmt.Println(closestEncoded)
 
-		fmt.Printf("RECEIVED: %s\n", string(buffer[0:n]))
-		return true
+	case "FINDNODE_RESPONSE":
+		fmt.Println("FFFFFFFFFFUUUUUUUUCCCCCCCCKKKKKKKKKK")
+		network.lookUpContactResponse = LookUpContactResponse{decodedData.Content}
+		fmt.Println(network.lookUpContactResponse)
+		responseType = "NONE"
+
+	}
+
+	if responseType != "NONE" && responseType != "UNDEFINED" {
+		responseRPC := NewRPC(network.routingTable.me, decodedData.Sender.Address, responseType, responseContent)
+		network.SendMessage(responseRPC)
+
+	} else { //No response if the messagetype is NONE or UNDEFINED
+		fmt.Println("Received 'OK', 'PONG' or 'UNDEFINED' message. Conversation done.")
 	}
 }
 
 func (network *Network) AddToStore(message string) string {
-	hxMsg := MakeHash(message)
+	hxMsg := network.MakeHash(message)
 	network.routingTable.me.KeyValueStore[hxMsg] = message
 	return hxMsg
 }
@@ -241,13 +228,13 @@ func (network *Network) LookForData(hash string) (bool, string) {
 	return false, ""
 }
 
-func MakeHash(message string) string {
+func (network *Network) MakeHash(message string) string {
 	hx := hex.EncodeToString([]byte(message))
 	return hx
 }
 
 func (network *Network) storeRPC(message RPC) {
-	hash := MakeHash(message.Content)
+	hash := network.MakeHash(message.Content)
 	fmt.Printf(hash)
 	network.SendMessage(message)
 }
@@ -316,8 +303,8 @@ func (network *Network) SendFindContactMessage() string {
 	return network.lookUpContactResponse.data
 }
 
-func (network *Network) SendFindDataMessage() (bool, string) {
-	return network.lookUpDataResponse.dataFound, network.lookUpDataResponse.data
+func (network *Network) SendFindDataMessage() (bool, string, Contact) {
+	return network.lookUpDataResponse.dataFound, network.lookUpDataResponse.data, network.lookUpDataResponse.node
 }
 
 func (network *Network) SendStoreMessage(data []byte) {
