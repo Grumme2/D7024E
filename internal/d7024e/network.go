@@ -12,6 +12,12 @@ import (
 type Network struct {
 	routingTable         *RoutingTable
 	awaitingResponseList *list.List
+	lookUpDataResponse LookUpDataResponse
+}
+
+type LookUpDataResponse struct {
+	dataFound bool
+	data string
 }
 
 type AwaitingResponseObject struct {
@@ -21,7 +27,8 @@ type AwaitingResponseObject struct {
 }
 
 func NewNetwork(rt *RoutingTable) Network {
-	return Network{rt, list.New()}
+	emptyLookUpData := LookUpDataResponse{}
+	return Network{rt, list.New(), emptyLookUpData}
 }
 
 func (network *Network) GetLocalIP() string {
@@ -132,16 +139,22 @@ func (network *Network) Listen() {
 					responseType = "ADDED TO STORE"
 					responseContent = key
 				case "FINDVALUE":
-					data := network.LookForData(decodedData.Content)
-					if data == "" {
-						closest := network.routingTable.FindClosestContacts(network.routingTable.me.ID, bucketSize)
-						data = network.KTriplesJSON(closest)
-						responseType = "DATA NOT FOUND"
-						responseContent = data
+					dataFound, data := network.LookForData(decodedData.Content)
+					if dataFound {
+						responseType = "FINDVALUE_RESPONSE"
+						lookupResponse := LookUpDataResponse{true, data}
+						responseContent = network.JSONEncodeLookUpDataResponse(lookupResponse)
 					}else {
-						responseType = "DATA FOUND"
-						responseContent = data
+						responseType = "FINDVALUE_RESPONSE"
+						closest := network.routingTable.FindClosestContacts(network.routingTable.me.ID, bucketSize)
+						closestEncoded := network.KTriplesJSON(closest)
+						lookupResponse := LookUpDataResponse{false, closestEncoded}
+						responseContent = network.JSONEncodeLookUpDataResponse(lookupResponse)
 					}
+				case "FINDVALUE_RESPONSE":
+					var data = network.JSONDecodeLookUpDataResponse(decodedData.Content)
+					network.lookUpDataResponse = data
+					responseType = "NONE"
 			}
 
 			responseRPC := NewRPC(network.routingTable.me, decodedData.Sender.Address, responseType, responseContent)
@@ -200,13 +213,13 @@ func (network *Network) AddToStore(message string) string {
 	return hxMsg
 }
 
-func (network *Network) LookForData(hash string) string {
+func (network *Network) LookForData(hash string) (bool, string) {
 	for key, element := range network.routingTable.me.KeyValueStore {
 		if key == hash {
-			return element
+			return true, element
 		} 
 	}
-	return ""
+	return false, ""
 }
 
 func MakeHash (message string) string {
@@ -220,6 +233,26 @@ func (network *Network) storeRPC (message RPC) {
 	network.SendMessage(message)
 }
 
+func (network *Network) JSONEncodeLookUpDataResponse (unencodedResponse LookUpDataResponse) string {
+	encoded, err := json.Marshal(unencodedResponse)
+	if err != nil {
+		fmt.Println(err)
+		return "ERROR"
+	}
+	encodedString := string(encoded)
+	return encodedString
+}
+
+func (network *Network) JSONDecodeLookUpDataResponse (encodedString string) LookUpDataResponse {
+	var unencoded LookUpDataResponse
+	err := json.Unmarshal([]byte(encodedString), &unencoded)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return unencoded
+}
+
+
 func (network *Network) KTriplesJSON (KClosest []Contact) string {
 	contactsJSON, err := json.Marshal(KClosest)
 	if err != nil {
@@ -230,15 +263,26 @@ func (network *Network) KTriplesJSON (KClosest []Contact) string {
 	return contactsStr
 }
 
+func (network *Network) KTriples (KClosest string)[]Contact {
+	var contacts []Contact
+	err := json.Unmarshal([]byte(KClosest),contacts)
+	if err != nil {
+		fmt.Println(err)
+		//return "ERROR"
+	}
+
+	return contacts
+}
+
 func (network *Network) SendFindContactMessage(contact *Contact) []Contact {
 	contacts := network.routingTable.FindClosestContacts(contact.ID, bucketSize)
 	return contacts
 }
 
-func (network *Network) SendFindDataMessage(hash string) {
-	// TODO
+func (network *Network) SendFindDataMessage() (bool, string){
+	return network.lookUpDataResponse.dataFound, network.lookUpDataResponse.data
 }
 
-func (network *Network) SendStoreMessage(data []byte) {
+func (network *Network) SendStoreMessage(data []byte){
 	// TODO
 }

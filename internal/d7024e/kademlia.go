@@ -1,5 +1,9 @@
 package d7024e
 
+import(
+	"time"
+)
+
 type Kademlia struct {
 	network Network
 }
@@ -37,6 +41,55 @@ func in(a Contact, list []Contact) bool {
 	}
 	return false
 }
+
+
+func (kademlia *Kademlia) LookupData(hash string) string {
+	kademlia.network.lookUpDataResponse = LookUpDataResponse{} //Resets LookUpDataResponse so we dont collect old results
+	newkademid := NewKademliaID(hash)
+	closest := kademlia.network.routingTable.FindClosestContacts(newkademid, alpha)
+	closestNode := closest[0]
+	shortlist := ContactCandidates{contacts: closest}
+	alreadyused := ContactCandidates{contacts: []Contact{}}
+	for shortlist.contacts[0].distance.Less(closestNode.distance) && !shortlist.contacts[0].ID.Equals(newkademid) {
+		closestNode = shortlist.contacts[0]
+		for i := 0; i < 3; i++ {
+			contact := shortlist.contacts[i]
+			if !in(contact, alreadyused.contacts) {
+				findValueRPC := NewRPC(kademlia.network.routingTable.me, contact.Address, "FINDVALUE", hash)
+				kademlia.network.SendMessage(findValueRPC)
+
+				for i := 0; i < 11; i++ {
+					time.Sleep(500 * time.Millisecond)
+					foundData, data := kademlia.network.SendFindDataMessage()
+					_ = data //Ignores "data declared and not used" compilation error
+					if (foundData || !foundData){ //If not undefined
+						break //Exit for loop
+					}
+					if (i == 10){
+						return "ERROR! Did not get response in time"
+					}
+				}
+
+				foundData, data := kademlia.network.SendFindDataMessage()
+				var contacts []Contact
+				if foundData {
+					return data
+				}else{
+					contacts = kademlia.network.KTriples(data)
+				}
+
+				alreadyused.Append([]Contact{contact})
+				shortlist.Append(contacts)
+				shortlist.Sort()
+				
+			} 
+		}
+		shortlist.CutContacts(bucketSize)
+	}
+	return kademlia.network.KTriplesJSON(shortlist.contacts)
+}
+
+
 
 /*
 func (kademlia *Kademlia) CreateNode(){
