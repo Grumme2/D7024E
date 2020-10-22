@@ -2,10 +2,15 @@ package d7024e
 
 import(
 	"time"
+	"fmt"
 )
 
 type Kademlia struct {
-	network Network
+	network *Network
+}
+
+func NewKademlia(network *Network) Kademlia {
+	return Kademlia{network}
 }
 
 var alpha = 3
@@ -30,7 +35,6 @@ func (kademlia *Kademlia) LookupContact(target *Contact) []Contact {
 		shortlist.CutContacts(bucketSize)
 	}
 	return shortlist.contacts
-
 }
 
 func in(a Contact, list []Contact) bool {
@@ -43,14 +47,15 @@ func in(a Contact, list []Contact) bool {
 }
 
 
-func (kademlia *Kademlia) LookupData(hash string) string {
+func (kademlia *Kademlia) LookupData(hash string) (bool, string, Contact) {
 	kademlia.network.lookUpDataResponse = LookUpDataResponse{} //Resets LookUpDataResponse so we dont collect old results
-	newkademid := NewKademliaID(hash)
-	closest := kademlia.network.routingTable.FindClosestContacts(newkademid, alpha)
+	newkademid := NewKademliaID(&hash)
+	closest := kademlia.network.routingTable.FindClosestContacts(&newkademid, alpha)
+	//Add if statement to check if closest is empty
 	closestNode := closest[0]
 	shortlist := ContactCandidates{contacts: closest}
 	alreadyused := ContactCandidates{contacts: []Contact{}}
-	for shortlist.contacts[0].distance.Less(closestNode.distance) && !shortlist.contacts[0].ID.Equals(newkademid) {
+	for shortlist.contacts[0].distance.Less(closestNode.distance) && !shortlist.contacts[0].ID.Equals(&newkademid) {
 		closestNode = shortlist.contacts[0]
 		for i := 0; i < 3; i++ {
 			contact := shortlist.contacts[i]
@@ -58,22 +63,20 @@ func (kademlia *Kademlia) LookupData(hash string) string {
 				findValueRPC := NewRPC(kademlia.network.routingTable.me, contact.Address, "FINDVALUE", hash)
 				kademlia.network.SendMessage(findValueRPC)
 
-				for i := 0; i < 11; i++ {
+				for j := 0; j < 11; j++ {
 					time.Sleep(500 * time.Millisecond)
-					foundData, data := kademlia.network.SendFindDataMessage()
+					foundData, data, node := kademlia.network.SendFindDataMessage()
 					_ = data //Ignores "data declared and not used" compilation error
+					_ = node //Ignores "data declared and not used" compilation error
 					if (foundData || !foundData){ //If not undefined
 						break //Exit for loop
 					}
-					if (i == 10){
-						return "ERROR! Did not get response in time"
-					}
 				}
 
-				foundData, data := kademlia.network.SendFindDataMessage()
+				foundData, data, node := kademlia.network.SendFindDataMessage()
 				var contacts []Contact
 				if foundData {
-					return data
+					return true, data, node
 				}else{
 					contacts = kademlia.network.KTriples(data)
 				}
@@ -86,21 +89,8 @@ func (kademlia *Kademlia) LookupData(hash string) string {
 		}
 		shortlist.CutContacts(bucketSize)
 	}
-	return kademlia.network.KTriplesJSON(shortlist.contacts)
+	return false, kademlia.network.KTriplesJSON(shortlist.contacts), kademlia.network.routingTable.me
 }
-
-
-
-/*
-func (kademlia *Kademlia) CreateNode(){
-	network.Listen()
-
-
-	myID := NewRandomKademliaID()
-	me := NewContact(myID, myIP, myID)
-	rt := NewRoutingTable(me)
-}
-*/
 
 /*
 func (kademlia *Kademlia) JoinNetwork(target *Contact) {
@@ -124,21 +114,11 @@ func (kademlia *Kademlia) JoinNetwork(target *Contact) {
 }
 */
 
-/*
-func (kademlia *Kademlia) LookupContact(target *Contact) {
-	rt.FindClosestContacts(target)
-
-	//1. see if exists in routingtable
-	//2. use rt.FindClosestContacts
-	//3. see if exists in closests
-
-}
-*/
-
 func (kademlia *Kademlia) Store(data string) {
 	closest := kademlia.LookupContact(&kademlia.network.routingTable.me)
 	for i := 0; i < len(closest); i++ {
 		rpc := NewRPC(kademlia.network.routingTable.me, closest[i].Address, "STORE", data)
-		kademlia.network.storeRPC(rpc)	
+		kademlia.network.storeRPC(rpc)
+		fmt.Println("Sent store to: " + closest[i].Address + " and data: " + data)
 	}
 }

@@ -3,6 +3,7 @@ package d7024e
 import (
 	"encoding/hex"
 	"math/rand"
+	"crypto/sha1"
 )
 
 // the static number of bytes in a KademliaID
@@ -12,15 +13,19 @@ const IDLength = 20
 type KademliaID [IDLength]byte
 
 // NewKademliaID returns a new instance of a KademliaID based on the string input
-func NewKademliaID(data string) *KademliaID {
-	decoded, _ := hex.DecodeString(data)
+func NewKademliaID(data *string) KademliaID {
+	/*decoded, _ := hex.DecodeString(data)
+
+	//Loop goes out of bounds since IDLength is 20 bytes
+	//Although NewKademliaID takes a data string that can be fewer than 20 bytes, leading to this problem
 
 	newKademliaID := KademliaID{}
 	for i := 0; i < IDLength; i++ {
 		newKademliaID[i] = decoded[i]
-	}
+	}*/
+	hash := sha1.Sum([]byte(*data))
 
-	return &newKademliaID
+	return hash
 }
 
 // NewRandomKademliaID returns a new instance of a random KademliaID,
