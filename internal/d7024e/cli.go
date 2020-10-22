@@ -76,6 +76,15 @@ func (cli *cli) AwaitCommand(){
 		case "WHATISMYIP":
 			ip := cli.kademlia.network.GetLocalIP()
 			fmt.Println("Your IP is " + ip)
+		case "PING":
+			if (len(inputSplit) == 2) {
+				target := inputSplit[1]
+				pingRPC := NewRPC(cli.kademlia.network.routingTable.me, target, "PING", "")
+				cli.kademlia.network.SendMessage(pingRPC)
+				fmt.Println("Sent ping to " + target)
+			} else {
+				fmt.Println("Error! Invalid arguments!")
+			}
 		case "SELFINBUCKET":
 			buckets := cli.kademlia.network.routingTable.buckets
 			myID := cli.kademlia.network.routingTable.me.ID
