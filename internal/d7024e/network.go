@@ -203,7 +203,7 @@ func (network *Network) SendMessage(message RPC) bool {
 			return false
 		}
 
-		fmt.Printf("RECEIVED: %s\n", string(buffer[0:n]))
+		fmt.Printf("SENT: %s\n", string(buffer[0:n]))
 		return true
 	}
 }
