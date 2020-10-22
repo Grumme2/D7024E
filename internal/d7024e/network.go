@@ -18,6 +18,7 @@ type Network struct {
 type LookUpDataResponse struct {
 	dataFound bool
 	data string
+	node Contact
 }
 
 type AwaitingResponseObject struct {
@@ -142,13 +143,13 @@ func (network *Network) Listen() {
 					dataFound, data := network.LookForData(decodedData.Content)
 					if dataFound {
 						responseType = "FINDVALUE_RESPONSE"
-						lookupResponse := LookUpDataResponse{true, data}
+						lookupResponse := LookUpDataResponse{true, data, network.routingTable.me}
 						responseContent = network.JSONEncodeLookUpDataResponse(lookupResponse)
 					}else {
 						responseType = "FINDVALUE_RESPONSE"
 						closest := network.routingTable.FindClosestContacts(network.routingTable.me.ID, bucketSize)
 						closestEncoded := network.KTriplesJSON(closest)
-						lookupResponse := LookUpDataResponse{false, closestEncoded}
+						lookupResponse := LookUpDataResponse{false, closestEncoded, network.routingTable.me}
 						responseContent = network.JSONEncodeLookUpDataResponse(lookupResponse)
 					}
 				case "FINDVALUE_RESPONSE":
@@ -208,7 +209,7 @@ func (network *Network) SendMessage(message RPC) bool {
 }
 
 func (network *Network) AddToStore(message string) string {
-	hxMsg := MakeHash(message)
+	hxMsg := network.MakeHash(message)
 	network.routingTable.me.KeyValueStore[hxMsg] = message
 	return hxMsg
 }
@@ -222,13 +223,13 @@ func (network *Network) LookForData(hash string) (bool, string) {
 	return false, ""
 }
 
-func MakeHash (message string) string {
+func (network *Network) MakeHash (message string) string {
 	hx := hex.EncodeToString([]byte(message))
 	return hx
 }
 
 func (network *Network) storeRPC (message RPC) {
-	hash := MakeHash(message.Content)
+	hash := network.MakeHash(message.Content)
 	fmt.Printf(hash)
 	network.SendMessage(message)
 }
@@ -279,8 +280,8 @@ func (network *Network) SendFindContactMessage(contact *Contact) []Contact {
 	return contacts
 }
 
-func (network *Network) SendFindDataMessage() (bool, string){
-	return network.lookUpDataResponse.dataFound, network.lookUpDataResponse.data
+func (network *Network) SendFindDataMessage() (bool, string, Contact){
+	return network.lookUpDataResponse.dataFound, network.lookUpDataResponse.data, network.lookUpDataResponse.node
 }
 
 func (network *Network) SendStoreMessage(data []byte){

@@ -9,11 +9,11 @@ import (
 )
 
 type cli struct {
-
+	kademlia *Kademlia
 }
 
-func NewCli() *cli {
-	cli := &cli{}
+func NewCli(kademlia *Kademlia) *cli {
+	cli := &cli{kademlia}
 	return cli
 }
 
@@ -29,8 +29,7 @@ func (cli *cli) AwaitCommand(){
 	switch strings.ToUpper(inputSplit[0]) {
 		case "EXIT":
 			fmt.Println("EXIT command detected")
-			//TODO: Terminate node
-			return //Exits the function
+			return //Exits the function and terminates the node
 		case "PRINT":
 			if (len(inputSplit) > 1) {
 				fmt.Println("Printing test: " + inputSplit[1])
@@ -41,20 +40,34 @@ func (cli *cli) AwaitCommand(){
 			if (len(inputSplit) == 2) {
 				fileUpload := inputSplit[1]
 				fmt.Println(fileUpload)
-				//Upload the file
-				//Output the hash of the object is upload was successful
-				//If unsuccessful, output an error message
-				fmt.Println("PUT")
+				//Uploads file
+				cli.kademlia.Store(fileUpload)
+				//See if file is uploaded
+				//sleep maybe? to make sure it has time to upload
+				hashedUpload := cli.kademlia.network.MakeHash(fileUpload)
+				dataFound, data, node := cli.kademlia.LookupData(hashedUpload)
+				_ = data //Prevent data declared and not used compilation error
+				_ = node //Prevent data declared and not used compilation error
+				if (dataFound){
+					fmt.Println("File upload successfully! Hashed upload: " + hashedUpload)
+				} else {
+					fmt.Println("File upload unsuccessful")
+				}
+
 			} else {
 				fmt.Println("Error! Invalid arguments!")
 			}
 		case "GET":
 			if (len(inputSplit) == 2) {
 				hash := inputSplit[1]
-				fmt.Println(hash)
-				//Output the object returned from the hash if successful
-				//If unsuccessful, output an error message
-				fmt.Println("GET")
+				dataFound, data, node := cli.kademlia.LookupData(hash)
+				_ = data //Prevent data declared and not used compilation error
+				if (dataFound){
+					//Also return which node it was retrieved from
+					fmt.Println("File download successfully! Downloaded file: " + data + " from node with address: " + node.Address)
+				} else {
+					fmt.Println("File download unsuccessful")
+				}
 			} else {
 				fmt.Println("Error! Invalid arguments!")
 			}
