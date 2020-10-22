@@ -73,6 +73,20 @@ func (cli *cli) AwaitCommand(){
 			}
 		case "OK":
 			fmt.Println("OK command detected")
+		case "WHATISMYIP":
+			ip := cli.network.GetLocalIP()
+			fmt.Println("Your IP is " + ip)
+		case "SELFINBUCKET":
+			buckets := cli.network.routingTable.buckets
+			myID := cli.network.routingTable.me.ID
+			myIndex := cli.network.routingTable.GetBucketIndex(myID)
+			isInBucket := buckets[myIndex].IsContactInBucket(cli.network.routingTable.me)
+			fmt.Println("Do you have yourself in your own buckets?")
+			fmt.Println(isInBucket)
+		case "MYCONTACT":
+			fmt.Println("My ID and Address")
+			fmt.Println(cli.network.routingTable.me.ID)
+			fmt.Println(cli.network.GetLocalIP())
 		case "HELP":
 			fmt.Println("Here are all available commands:")
 			fmt.Println("HELP - Shows a list of all available commands.")
