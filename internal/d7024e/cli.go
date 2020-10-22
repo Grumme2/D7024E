@@ -51,6 +51,8 @@ func (cli *cli) AwaitCommand(){
 				if (dataFound){
 					fmt.Println("File upload successfully! Hashed upload: " + hashedUpload)
 				} else {
+					fmt.Println(dataFound)
+					fmt.Println(data)
 					fmt.Println("File upload unsuccessful")
 				}
 
@@ -66,6 +68,8 @@ func (cli *cli) AwaitCommand(){
 					//Also return which node it was retrieved from
 					fmt.Println("File download successfully! Downloaded file: " + data + " from node with address: " + node.Address)
 				} else {
+					fmt.Println(dataFound)
+					fmt.Println(data)
 					fmt.Println("File download unsuccessful")
 				}
 			} else {
