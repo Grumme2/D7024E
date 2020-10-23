@@ -17,6 +17,7 @@ var alpha = 3
 
 func (kademlia *Kademlia) LookupContact(target *Contact) string {
 	shortlist := ContactCandidates{kademlia.network.routingTable.FindClosestContacts(target.ID, alpha)}
+	//fmt.Println(shortlist)
 	alreadyused := ContactCandidates{contacts: []Contact{}}
 	str := "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
 	id := NewKademliaID(&str)
@@ -27,6 +28,7 @@ func (kademlia *Kademlia) LookupContact(target *Contact) string {
 	fmt.Println(less)
 	fmt.Println(equal)
 	for shortlist.contacts[0].distance.Less(closestNode.distance) && !shortlist.contacts[0].ID.Equals(target.ID) {
+		//fmt.Println("ENTERCHECK")
 		closestNode = shortlist.contacts[0]
 		fmt.Println(closestNode.ID)
 		for i := 0; i < 3; i++ {
@@ -60,7 +62,9 @@ func (kademlia *Kademlia) LookupContact(target *Contact) string {
 		}
 		shortlist.CutContacts(bucketSize)
 	}
-	return kademlia.network.KTriplesJSON(shortlist.contacts)
+	KTrJson := kademlia.network.KTriplesJSON(shortlist.contacts)
+	//fmt.Println(KTrJson)
+	return KTrJson
 
 }
 

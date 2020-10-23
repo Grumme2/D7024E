@@ -289,12 +289,12 @@ func (network *Network) KTriplesJSON(KClosest []Contact) string {
 
 func (network *Network) KTriples(KClosest string) []Contact {
 	var contacts []Contact
-	err := json.Unmarshal([]byte(KClosest), contacts)
+	err := json.Unmarshal([]byte(KClosest), &contacts)
 	if err != nil {
 		fmt.Println(err)
 		//return "ERROR"
 	}
-
+	fmt.Println(contacts)
 	return contacts
 }
 

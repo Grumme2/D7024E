@@ -140,6 +140,7 @@ func TestLookupContact(t *testing.T) {
 	// assert.Equal(t, con22.ID, shortlist[0].ID)
 	shortlistJSON := kademlia.LookupContact(&con23)
 	shortlist := network.KTriples(shortlistJSON)
+	//fmt.Println(shortlist)
 	assert.Equal(t, con23.ID, shortlist[0].ID)
 	// //shortlist = kademlia.LookupContact(&con24)
 	// //assert.Equal(t, con24.ID, shortlist[0].ID)

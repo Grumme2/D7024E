@@ -70,7 +70,7 @@ func TestKriplesJSON(t *testing.T) {
 
 	list := []Contact{con3, con4, con5}
 	//fmt.Println(network.KTriplesJSON(list))
-	assert.Equal(t, network.KTriplesJSON(list), `[{"ID":[255,255,255,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],"Address":"localhost:8003","KeyValueStore":{}},{"ID":[17,17,17,17,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],"Address":"localhost:8004","KeyValueStore":{}},{"ID":[17,17,17,18,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],"Address":"localhost:8005","KeyValueStore":{}}]`)
+	assert.Equal(t, network.KTriplesJSON(list), `[{"ID":[225,19,161,37,135,218,181,90,72,245,226,134,60,209,249,0,53,45,185,171],"Address":"localhost","KeyValueStore":{}},{"ID":[95,50,45,254,97,219,19,205,45,221,20,19,145,116,84,112,176,160,214,107],"Address":"localhost","KeyValueStore":{}},{"ID":[101,139,88,248,141,101,156,47,114,72,75,13,78,108,251,16,113,172,122,224],"Address":"localhost","KeyValueStore":{}}]`)
 }
 
 // func TestSendMessage(t *testing.T) {
