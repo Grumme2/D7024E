@@ -1,4 +1,6 @@
 
 .vscode
+coverage.out
+go.sum
 
 
