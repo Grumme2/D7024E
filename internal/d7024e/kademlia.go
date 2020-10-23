@@ -1,8 +1,8 @@
 package d7024e
 
-import(
-	"time"
+import (
 	"fmt"
+	"time"
 )
 
 type Kademlia struct {
@@ -15,26 +15,57 @@ func NewKademlia(network *Network) Kademlia {
 
 var alpha = 3
 
-func (kademlia *Kademlia) LookupContact(target *Contact) []Contact {
-	closest := kademlia.network.routingTable.FindClosestContacts(target.ID, alpha)
-	closestNode := closest[0]
-	shortlist := ContactCandidates{contacts: closest}
+func (kademlia *Kademlia) LookupContact(target *Contact) string {
+	shortlist := ContactCandidates{kademlia.network.routingTable.FindClosestContacts(target.ID, alpha)}
+	//fmt.Println(shortlist)
 	alreadyused := ContactCandidates{contacts: []Contact{}}
+	str := "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
+	id := NewKademliaID(&str)
+	closestNode := NewContact(&id, "")
+	closestNode.distance = &id
+	less := shortlist.contacts[0].distance.Less(closestNode.distance)
+	equal := shortlist.contacts[0].ID.Equals(target.ID)
+	fmt.Println(less)
+	fmt.Println(equal)
 	for shortlist.contacts[0].distance.Less(closestNode.distance) && !shortlist.contacts[0].ID.Equals(target.ID) {
+		//fmt.Println("ENTERCHECK")
 		closestNode = shortlist.contacts[0]
+		fmt.Println(closestNode.ID)
 		for i := 0; i < 3; i++ {
 			contact := shortlist.contacts[i]
 			if !in(contact, alreadyused.contacts) {
-				contacts := kademlia.network.SendFindContactMessage(target)
+				findValueRPC := NewRPC(kademlia.network.routingTable.me, contact.Address, "FINDNODE", "")
+				kademlia.network.SendMessage(findValueRPC)
+
+				for j := 0; j < 11; j++ {
+					fmt.Println("TEST")
+					time.Sleep(500 * time.Millisecond)
+					var data string
+					data = kademlia.network.SendFindContactMessage()
+					_ = data        //Ignores "data declared and not used" compilation error
+					if data != "" { //If not undefined
+						break //Exit for loop
+					}
+					fmt.Println(data)
+					if j == 10 {
+						fmt.Printf("hej")
+						return "ERROR! Did not get response in time"
+					}
+				}
+				data := kademlia.network.SendFindContactMessage()
+				contacts := kademlia.network.KTriples(data)
+
 				alreadyused.Append([]Contact{contact})
 				shortlist.Append(contacts)
 				shortlist.Sort()
 			}
-
 		}
 		shortlist.CutContacts(bucketSize)
 	}
-	return shortlist.contacts
+	KTrJson := kademlia.network.KTriplesJSON(shortlist.contacts)
+	//fmt.Println(KTrJson)
+	return KTrJson
+
 }
 
 func in(a Contact, list []Contact) bool {
@@ -45,7 +76,6 @@ func in(a Contact, list []Contact) bool {
 	}
 	return false
 }
-
 
 func (kademlia *Kademlia) LookupData(hash string) (bool, string, Contact) {
 	kademlia.network.lookUpDataResponse = LookUpDataResponse{} //Resets LookUpDataResponse so we dont collect old results
@@ -66,9 +96,9 @@ func (kademlia *Kademlia) LookupData(hash string) (bool, string, Contact) {
 				for j := 0; j < 11; j++ {
 					time.Sleep(500 * time.Millisecond)
 					foundData, data, node := kademlia.network.SendFindDataMessage()
-					_ = data //Ignores "data declared and not used" compilation error
-					_ = node //Ignores "data declared and not used" compilation error
-					if (foundData || !foundData){ //If not undefined
+					_ = data                     //Ignores "data declared and not used" compilation error
+					_ = node                     //Ignores "data declared and not used" compilation error
+					if foundData || !foundData { //If not undefined
 						break //Exit for loop
 					}
 				}
@@ -77,15 +107,15 @@ func (kademlia *Kademlia) LookupData(hash string) (bool, string, Contact) {
 				var contacts []Contact
 				if foundData {
 					return true, data, node
-				}else{
+				} else {
 					contacts = kademlia.network.KTriples(data)
 				}
 
 				alreadyused.Append([]Contact{contact})
 				shortlist.Append(contacts)
 				shortlist.Sort()
-				
-			} 
+
+			}
 		}
 		shortlist.CutContacts(bucketSize)
 	}
@@ -115,7 +145,8 @@ func (kademlia *Kademlia) JoinNetwork(target *Contact) {
 */
 
 func (kademlia *Kademlia) Store(data string) {
-	closest := kademlia.LookupContact(&kademlia.network.routingTable.me)
+	closestjson := kademlia.LookupContact(&kademlia.network.routingTable.me)
+	closest := kademlia.network.KTriples(closestjson)
 	for i := 0; i < len(closest); i++ {
 		rpc := NewRPC(kademlia.network.routingTable.me, closest[i].Address, "STORE", data)
 		kademlia.network.storeRPC(rpc)
