@@ -6,6 +6,7 @@ import (
 	"bufio"
 	"regexp"
 	"strings"
+	"time"
 )
 
 type cli struct {
@@ -36,14 +37,38 @@ func (cli *cli) AwaitCommand(){
 			} else {
 				fmt.Println("Error! Invalid arguments!")
 			}
+		case "TESTPUT":
+			if (len(inputSplit) == 3) {
+				fileUpload := inputSplit[1]
+				targetIP := inputSplit[2]
+				_ = targetIP
+				//Uploads file
+				cli.kademlia.Store(fileUpload) //File upload works (well atleast the RPC is sent and received properly)
+				//See if file is uploaded
+
+				time.Sleep(1000 * time.Millisecond) //Sleep for 3s
+
+				findValueRPC := NewRPC(cli.kademlia.network.routingTable.me, targetIP, "FINDVALUE", cli.kademlia.network.MakeHash(fileUpload))
+				cli.kademlia.network.SendMessage(findValueRPC)
+
+				time.Sleep(1000 * time.Millisecond) //Sleep for 3s
+
+				fmt.Println(cli.kademlia.network.lookUpDataResponse.DataFound)
+				fmt.Println(cli.kademlia.network.lookUpDataResponse.Data)
+				fmt.Println(cli.kademlia.network.lookUpDataResponse.Node)
+			} else {
+				fmt.Println("Error! Invalid arguments!")
+			}
 		case "PUT":
 			if (len(inputSplit) == 2) {
 				fileUpload := inputSplit[1]
 				fmt.Println(fileUpload)
 				//Uploads file
-				cli.kademlia.Store(fileUpload)
+				cli.kademlia.Store(fileUpload) //File upload works (well atleast the RPC is sent and received properly)
 				//See if file is uploaded
-				//sleep maybe? to make sure it has time to upload
+
+				time.Sleep(3000 * time.Millisecond) //Sleep for 3s
+
 				hashedUpload := cli.kademlia.network.MakeHash(fileUpload)
 				dataFound, data, node := cli.kademlia.LookupData(hashedUpload)
 				_ = data //Prevent data declared and not used compilation error
@@ -53,6 +78,7 @@ func (cli *cli) AwaitCommand(){
 				} else {
 					fmt.Println(dataFound)
 					fmt.Println(data)
+					fmt.Println(node)
 					fmt.Println("File upload unsuccessful")
 				}
 
@@ -70,6 +96,7 @@ func (cli *cli) AwaitCommand(){
 				} else {
 					fmt.Println(dataFound)
 					fmt.Println(data)
+					fmt.Println(node)
 					fmt.Println("File download unsuccessful")
 				}
 			} else {
@@ -77,7 +104,7 @@ func (cli *cli) AwaitCommand(){
 			}
 		case "OK":
 			fmt.Println("OK command detected")
-		case "WHATISMYIP":
+		case "MYIP":
 			ip := GetLocalIP()
 			fmt.Println("Your IP is " + ip)
 		case "PING":

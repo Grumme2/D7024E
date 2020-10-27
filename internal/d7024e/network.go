@@ -17,9 +17,9 @@ type Network struct {
 }
 
 type LookUpDataResponse struct {
-	dataFound bool
-	data      string
-	node      Contact
+	DataFound bool
+	Data      string
+	Node      Contact
 }
 
 type LookUpContactResponse struct {
@@ -175,10 +175,13 @@ func (network *Network) ListenHandler(receivedData []byte, connection *net.UDPCo
 	case "FINDVALUE":
 		dataFound, data := network.LookForData(decodedData.Content)
 		if dataFound {
+			fmt.Println("FINDVALUE found")
 			responseType = "FINDVALUE_RESPONSE"
 			lookupResponse := LookUpDataResponse{true, data, network.routingTable.me}
+			fmt.Println(lookupResponse)
 			responseContent = network.JSONEncodeLookUpDataResponse(lookupResponse)
 		} else {
+			fmt.Println("FINDVALUE did not find")
 			responseType = "FINDVALUE_RESPONSE"
 			closest := network.routingTable.FindClosestContacts(network.routingTable.me.ID, bucketSize)
 			closestEncoded := network.KTriplesJSON(closest)
@@ -186,8 +189,10 @@ func (network *Network) ListenHandler(receivedData []byte, connection *net.UDPCo
 			responseContent = network.JSONEncodeLookUpDataResponse(lookupResponse)
 		}
 	case "FINDVALUE_RESPONSE":
+		fmt.Println("FINDVALUE_RESPONSE")
 		var data = network.JSONDecodeLookUpDataResponse(decodedData.Content)
-		network.lookUpDataResponse = data
+		fmt.Println(data)
+		network.lookUpDataResponse = LookUpDataResponse{data.DataFound, data.Data, data.Node}
 		responseType = "NONE"
 	case "FINDNODE":
 		responseType = "FINDNODE_RESPONSE"
@@ -222,6 +227,7 @@ func (network *Network) AddToStore(message string) string {
 func (network *Network) LookForData(hash string) (bool, string) {
 	for key, element := range network.routingTable.me.KeyValueStore {
 		if key == hash {
+			fmt.Println("LookForData found element: " + element)
 			return true, element
 		}
 	}
@@ -270,7 +276,7 @@ func (network *Network) KTriplesJSON(KClosest []Contact) string {
 
 func (network *Network) KTriples(KClosest string) []Contact {
 	var contacts []Contact
-	err := json.Unmarshal([]byte(KClosest), contacts)
+	err := json.Unmarshal([]byte(KClosest), &contacts)
 	if err != nil {
 		fmt.Println(err)
 		//return "ERROR"
@@ -285,7 +291,7 @@ func (network *Network) SendFindContactMessage() string {
 }
 
 func (network *Network) SendFindDataMessage() (bool, string, Contact) {
-	return network.lookUpDataResponse.dataFound, network.lookUpDataResponse.data, network.lookUpDataResponse.node
+	return network.lookUpDataResponse.DataFound, network.lookUpDataResponse.Data, network.lookUpDataResponse.Node
 }
 
 func (network *Network) SendStoreMessage(data []byte) {

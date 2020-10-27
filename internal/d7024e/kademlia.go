@@ -150,6 +150,6 @@ func (kademlia *Kademlia) Store(data string) {
 	for i := 0; i < len(closest); i++ {
 		rpc := NewRPC(kademlia.network.routingTable.me, closest[i].Address, "STORE", data)
 		kademlia.network.storeRPC(rpc)
-		fmt.Println("Sent store to: " + closest[i].Address + " and data: " + data)
+		fmt.Println("Sent store to: " + closest[i].Address + " with data: " + data)
 	}
 }
