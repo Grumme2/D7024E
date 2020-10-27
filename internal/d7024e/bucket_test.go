@@ -6,11 +6,18 @@ import (
 
 func TestAddToBucket(t *testing.T) {
 	buck := NewBucket()
-	conOne := NewContact(NewRandomKademliaID(), "localhost:8000")
-	conTwo := NewContact(NewRandomKademliaID(), "localhost:8001")
-	conThree := NewContact(NewRandomKademliaID(), "localhost:8002")
-	conFour := NewContact(NewRandomKademliaID(), "localhost:8003")
-	conFive := NewContact(NewRandomKademliaID(), "localhost:8004")
+	id1 := NewRandomKademliaID()
+	id2 := NewRandomKademliaID()
+	id3 := NewRandomKademliaID()
+	id4 := NewRandomKademliaID()
+	id5 := NewRandomKademliaID()
+
+	conOne := NewContact(&id1, "localhost:8000")
+	conTwo := NewContact(&id2, "localhost:8001")
+	conThree := NewContact(&id3, "localhost:8002")
+	conFour := NewContact(&id4, "localhost:8003")
+	conFive := NewContact(&id5, "localhost:8004")
+
 	buck.AddContact(conOne)
 	buck.AddContact(conTwo)
 	buck.AddContact(conThree)
@@ -23,10 +30,16 @@ func TestAddToBucket(t *testing.T) {
 
 func TestRemoveFromBucket(t *testing.T) {
 	buck := NewBucket()
-	conOne := NewContact(NewRandomKademliaID(), "localhost:8000")
-	conTwo := NewContact(NewRandomKademliaID(), "localhost:8001")
-	conThree := NewContact(NewRandomKademliaID(), "localhost:8002")
-	conFour := NewContact(NewRandomKademliaID(), "localhost:8003")
+	id1 := NewRandomKademliaID()
+	id2 := NewRandomKademliaID()
+	id3 := NewRandomKademliaID()
+	id4 := NewRandomKademliaID()
+
+	conOne := NewContact(&id1, "localhost:8000")
+	conTwo := NewContact(&id2, "localhost:8001")
+	conThree := NewContact(&id3, "localhost:8002")
+	conFour := NewContact(&id4, "localhost:8003")
+
 	buck.AddContact(conOne)
 	buck.AddContact(conTwo)
 	buck.AddContact(conThree)
@@ -39,10 +52,16 @@ func TestRemoveFromBucket(t *testing.T) {
 
 func TestIsContactInBucket(t *testing.T) {
 	buck := NewBucket()
-	conOne := NewContact(NewRandomKademliaID(), "localhost:8000")
-	conTwo := NewContact(NewRandomKademliaID(), "localhost:8001")
-	conThree := NewContact(NewRandomKademliaID(), "localhost:8002")
-	conFour := NewContact(NewRandomKademliaID(), "localhost:8003")
+	id1 := NewRandomKademliaID()
+	id2 := NewRandomKademliaID()
+	id3 := NewRandomKademliaID()
+	id4 := NewRandomKademliaID()
+
+	conOne := NewContact(&id1, "localhost:8000")
+	conTwo := NewContact(&id2, "localhost:8001")
+	conThree := NewContact(&id3, "localhost:8002")
+	conFour := NewContact(&id4, "localhost:8003")
+
 	buck.AddContact(conOne)
 	buck.AddContact(conTwo)
 	buck.AddContact(conThree)

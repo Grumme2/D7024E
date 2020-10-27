@@ -1,9 +1,9 @@
 package d7024e
 
 import (
+	"crypto/sha1"
 	"encoding/hex"
 	"math/rand"
-	"crypto/sha1"
 )
 
 // the static number of bytes in a KademliaID
@@ -30,12 +30,12 @@ func NewKademliaID(data *string) KademliaID {
 
 // NewRandomKademliaID returns a new instance of a random KademliaID,
 // change this to a better version if you like
-func NewRandomKademliaID() *KademliaID {
+func NewRandomKademliaID() KademliaID {
 	newKademliaID := KademliaID{}
 	for i := 0; i < IDLength; i++ {
 		newKademliaID[i] = uint8(rand.Intn(256))
 	}
-	return &newKademliaID
+	return newKademliaID
 }
 
 // Less returns true if kademliaID < otherKademliaID (bitwise)

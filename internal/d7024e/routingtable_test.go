@@ -1,7 +1,6 @@
 package d7024e
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -42,12 +41,12 @@ func TestRoutingTable(t *testing.T) {
 
 	contacts := rt.FindClosestContacts(&id6, 20)
 
-	fmt.Println(contacts[0].String())
-	fmt.Println(contacts[1].String())
-	fmt.Println(contacts[2].String())
-	fmt.Println(contacts[3].String())
-	fmt.Println(contacts[4].String())
-	fmt.Println(contacts[5].String())
+	// fmt.Println(contacts[0].String())
+	// fmt.Println(contacts[1].String())
+	// fmt.Println(contacts[2].String())
+	// fmt.Println(contacts[3].String())
+	// fmt.Println(contacts[4].String())
+	// fmt.Println(contacts[5].String())
 
 	assert.Equal(t, contacts[0].String(), `contact("b4bfb0ce7e0e6f16c2acc5facde2ae723210b66a", "localhost:8001")`)
 	assert.Equal(t, contacts[1].String(), `contact("b433805b2c8d792c75e5b069f217dfcbc0f4517a", "localhost:8001")`)
@@ -125,14 +124,14 @@ func TestFindClosestContacts(t *testing.T) {
 	rt.AddContact(notEvenClose)
 	rt.AddContact(nextClosest)
 	rt.AddContact(closestCon)
-	test := "closestCon: " + closestCon.String()
-	fmt.Println(test)
-	test2 := "nextclosest: " + nextClosest.String()
-	fmt.Println(test2)
-	test3 := "notevenclose: " + notEvenClose.String()
-	fmt.Println(test3)
-	test4 := "con: " + con.String()
-	fmt.Println(test4)
+	// test := "closestCon: " + closestCon.String()
+	// fmt.Println(test)
+	// test2 := "nextclosest: " + nextClosest.String()
+	// fmt.Println(test2)
+	// test3 := "notevenclose: " + notEvenClose.String()
+	// fmt.Println(test3)
+	// test4 := "con: " + con.String()
+	// fmt.Println(test4)
 
 	close := rt.FindClosestContacts(&id6, 2)
 	assert.Equal(t, close[0].ID, closestCon.ID)
