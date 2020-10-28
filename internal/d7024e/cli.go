@@ -37,7 +37,7 @@ func (cli *cli) AwaitCommand(){
 			} else {
 				fmt.Println("Error! Invalid arguments!")
 			}
-		case "TESTPUT":
+		case "PUTIP":
 			if (len(inputSplit) == 3) {
 				fileUpload := inputSplit[1]
 				targetIP := inputSplit[2]
@@ -56,6 +56,34 @@ func (cli *cli) AwaitCommand(){
 				fmt.Println(cli.kademlia.network.lookUpDataResponse.DataFound)
 				fmt.Println(cli.kademlia.network.lookUpDataResponse.Data)
 				fmt.Println(cli.kademlia.network.lookUpDataResponse.Node)
+			} else {
+				fmt.Println("Error! Invalid arguments!")
+			}
+		case "GETIP":
+			if (len(inputSplit) == 3) {
+				hash := inputSplit[1]
+				ip := inputSplit[2]
+				_ = ip
+				dataFound, data, node := cli.kademlia.LookupData(hash)
+				_ = data //Prevent data declared and not used compilation error
+				if (dataFound){
+					//Also return which node it was retrieved from
+					fmt.Println("File download successfully! Downloaded file: " + data + " from node with address: " + node.Address)
+				} else {
+					fmt.Println(dataFound)
+					fmt.Println(data)
+					fmt.Println(node)
+					fmt.Println("File download unsuccessful")
+				}
+			} else {
+				fmt.Println("Error! Invalid arguments!")
+			}
+		case "STORE":
+			if (len(inputSplit) == 2) {
+				fileUpload := inputSplit[1]
+				fmt.Println(fileUpload)
+				//Uploads file
+				cli.kademlia.Store(fileUpload) //File upload works (well atleast the RPC is sent and received properly)
 			} else {
 				fmt.Println("Error! Invalid arguments!")
 			}

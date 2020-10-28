@@ -23,7 +23,7 @@ type LookUpDataResponse struct {
 }
 
 type LookUpContactResponse struct {
-	data string
+	Data string
 }
 
 type AwaitingResponseObject struct {
@@ -149,7 +149,7 @@ func (network *Network) ListenHandler(receivedData []byte, connection *net.UDPCo
 		//If bucket is full, the node pings the contact at the tail of the buckets list
 		//If previously mentioned contact fails to respond in x amount of time, it is dropped from the list and the new contact is added at the head
 		bucketIndex := network.routingTable.GetBucketIndex(decodedData.Sender.ID)
-		tailContact := network.routingTable.buckets[bucketIndex].list.Back().Value.(Contact) //Vet ej om detta faktiskt stämmer
+		tailContact := network.routingTable.buckets[bucketIndex].list.Back().Value.(Contact)
 		currentTime := time.Now().Unix()
 
 		awaitingResponseData := AwaitingResponseObject{currentTime, tailContact, decodedData.Sender}
@@ -200,13 +200,11 @@ func (network *Network) ListenHandler(receivedData []byte, connection *net.UDPCo
 		//fmt.Println(closest)
 		responseContent = network.KTriplesJSON(closest)
 		//fmt.Println(closestEncoded)
-
 	case "FINDNODE_RESPONSE":
 		fmt.Println("FFFFFFFFFFUUUUUUUUCCCCCCCCKKKKKKKKKK")
 		network.lookUpContactResponse = LookUpContactResponse{decodedData.Content}
 		fmt.Println(network.lookUpContactResponse)
 		responseType = "NONE"
-
 	}
 
 	if responseType != "NONE" && responseType != "UNDEFINED" {
@@ -221,6 +219,7 @@ func (network *Network) ListenHandler(receivedData []byte, connection *net.UDPCo
 func (network *Network) AddToStore(message string) string {
 	hxMsg := network.MakeHash(message)
 	network.routingTable.me.KeyValueStore[hxMsg] = message
+	fmt.Println("Stored: " + message)
 	return hxMsg
 }
 
@@ -285,15 +284,10 @@ func (network *Network) KTriples(KClosest string) []Contact {
 	return contacts
 }
 
-func (network *Network) SendFindContactMessage() string {
-	// contacts := network.routingTable.FindClosestContacts(contact.ID, bucketSize)
-	return network.lookUpContactResponse.data
+func (network *Network) GetFindContactResponse() string {
+	return network.lookUpContactResponse.Data
 }
 
-func (network *Network) SendFindDataMessage() (bool, string, Contact) {
+func (network *Network) GetFindDataResponse() (bool, string, Contact) {
 	return network.lookUpDataResponse.DataFound, network.lookUpDataResponse.Data, network.lookUpDataResponse.Node
-}
-
-func (network *Network) SendStoreMessage(data []byte) {
-	// TODO
 }
