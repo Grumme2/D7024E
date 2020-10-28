@@ -173,7 +173,7 @@ func (network *Network) ListenHandler(receivedData []byte, connection *net.UDPCo
 	switch decodedData.MessageType {
 	case "PING":
 		responseType = "PONG"
-		responseContent = decodedData.Content
+		// responseContent = decodedData.Content
 	case "OK":
 		responseType = "NONE"
 	case "STORE":
