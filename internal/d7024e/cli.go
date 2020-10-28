@@ -103,7 +103,7 @@ func (cli *cli) AwaitCommand() {
 	case "BUCKETCONTENTS":
 		buckets := cli.kademlia.network.routingTable.buckets
 		fmt.Println(buckets)
-	case "JOINNETWORK":
+	case "JN": //JOINNETWORK
 		cli.kademlia.JoinNetwork()
 	case "HELP":
 		fmt.Println("Here are all available commands:")
