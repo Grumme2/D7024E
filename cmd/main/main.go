@@ -20,7 +20,7 @@ func main() {
 	rt := d7024e.NewRoutingTable(me)
 	network := d7024e.NewNetwork(rt)
 	kademlia := d7024e.NewKademlia(&network)
-	kademlia.JoinNetwork()
+	// kademlia.JoinNetwork()
 	fmt.Println(me.Address)
 	// go network.Listen()
 	// go network.CheckNodesAwaitingResponse()

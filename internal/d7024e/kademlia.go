@@ -25,7 +25,7 @@ func (Kademlia *Kademlia) JoinNetwork() {
 
 	bootStrapSplitIP := append(splitIP, "3")
 	bootStrapIP := strings.Join(bootStrapSplitIP, ".") // Bootstrap nodes iP address
-
+	fmt.Println(bootStrapIP)
 	bootStrapNodeStr := "2111111300000000000000000000123000000000" // hardcoded bootstrapnode ID
 	bootStrapKademID := NewKademliaID(&bootStrapNodeStr)
 	bootStrapNode := NewContact(&bootStrapKademID, bootStrapIP)
@@ -41,14 +41,14 @@ func (Kademlia *Kademlia) JoinNetwork() {
 			Kademlia.network.SendMessage(pingRPC)
 			time.Sleep(500 * time.Millisecond)
 			ping, message := Kademlia.network.SendPINGMessage() // gets ping result
-
+			fmt.Println(message)
 			if ping && message == fmt.Sprint(i) { // checks if ping gave a response
 
-				LookUpContactRPC := NewRPC(bootStrapNode, Kademlia.network.routingTable.me.Address, "FINDNODE", "") // lookup contact rpc should just call lookupcontact
-				Kademlia.network.SendMessage(LookUpContactRPC)
-
-				// Kademlia.network.routingTable.AddContact(bootStrapNode)
-				// Kademlia.LookupContact(&Kademlia.network.routingTable.me) // Broken right now so are just doing the rpc call
+				// LookUpContactRPC := NewRPC(bootStrapNode, Kademlia.network.routingTable.me.Address, "FINDNODE", "") // lookup contact rpc should just call lookupcontact
+				// Kademlia.network.SendMessage(LookUpContactRPC)
+				//
+				Kademlia.network.routingTable.AddContact(bootStrapNode)
+				Kademlia.LookupContact(&Kademlia.network.routingTable.me) // Broken right now so are just doing the rpc call
 
 				break // breaks when node has joined network
 
