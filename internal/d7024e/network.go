@@ -14,6 +14,7 @@ type Network struct {
 	awaitingResponseList  *list.List
 	lookUpDataResponse    LookUpDataResponse
 	lookUpContactResponse LookUpContactResponse
+	pingResponse          PINGResponse
 }
 
 type LookUpDataResponse struct {
@@ -26,6 +27,11 @@ type LookUpContactResponse struct {
 	data string
 }
 
+type PINGResponse struct {
+	pong bool
+	data string
+}
+
 type AwaitingResponseObject struct {
 	timestamp int64
 	oldNode   Contact
@@ -35,7 +41,8 @@ type AwaitingResponseObject struct {
 func NewNetwork(rt *RoutingTable) Network {
 	emptyLookUpData := LookUpDataResponse{}
 	emptyLookUpContact := LookUpContactResponse{}
-	return Network{rt, list.New(), emptyLookUpData, emptyLookUpContact}
+	emptyPINGresponse := PINGResponse{}
+	return Network{rt, list.New(), emptyLookUpData, emptyLookUpContact, emptyPINGresponse}
 }
 
 func GetLocalIP() string {
@@ -166,6 +173,7 @@ func (network *Network) ListenHandler(receivedData []byte, connection *net.UDPCo
 	switch decodedData.MessageType {
 	case "PING":
 		responseType = "PONG"
+		responseContent = decodedData.Content
 	case "OK":
 		responseType = "NONE"
 	case "STORE":
@@ -207,6 +215,9 @@ func (network *Network) ListenHandler(receivedData []byte, connection *net.UDPCo
 		fmt.Println(network.lookUpContactResponse)
 		responseType = "NONE"
 
+	case "PONG":
+		network.pingResponse = PINGResponse{true, decodedData.Content}
+		responseType = "NONE"
 	}
 
 	if responseType != "NONE" && responseType != "UNDEFINED" {
@@ -292,6 +303,10 @@ func (network *Network) SendFindContactMessage() string {
 
 func (network *Network) SendFindDataMessage() (bool, string, Contact) {
 	return network.lookUpDataResponse.DataFound, network.lookUpDataResponse.Data, network.lookUpDataResponse.Node
+}
+
+func (network *Network) SendPINGMessage() (bool, string) {
+	return network.pingResponse.pong, network.pingResponse.data
 }
 
 func (network *Network) SendStoreMessage(data []byte) {
