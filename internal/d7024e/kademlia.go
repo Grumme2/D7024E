@@ -22,29 +22,34 @@ func (Kademlia *Kademlia) JoinNetwork() {
 	splitIP := strings.Split(myip, ".")
 	splitIPBS := splitIP[:len(splitIP)-1]
 	bootStrapSplitIP := append(splitIPBS, "3")
-	bootStrapIP := strings.Join(bootStrapSplitIP, ".")
+	bootStrapIP := strings.Join(bootStrapSplitIP, ".") // Bootstrap nodes iP address
 
-	bootStrapNodeStr := "2111111300000000000000000000123000000000"
+	bootStrapNodeStr := "2111111300000000000000000000123000000000" // hardcoded bootstrapnode ID
 	bootStrapKademID := NewKademliaID(&bootStrapNodeStr)
 	bootStrapNode := NewContact(&bootStrapKademID, bootStrapIP)
 
-	if splitIP[3] == "3" {
+	if splitIP[3] == "3" { // if Bootstrap node nothing needs to be done
 		return
 	} else {
-
 		i := 0
 		for {
 
 			pingRPC := NewRPC(Kademlia.network.routingTable.me, bootStrapIP, "PING", fmt.Sprint(i))
 			Kademlia.network.SendMessage(pingRPC)
 			time.Sleep(500 * time.Millisecond)
-			ping, str := Kademlia.network.SendPINGMessage()
-			if ping && str == fmt.Sprint(i) {
-				LookUpContactRPC := NewRPC(bootStrapNode, Kademlia.network.routingTable.me.Address, "FINDNODE", "")
+			ping, message := Kademlia.network.SendPINGMessage() // gets ping result
+
+			if ping && message == fmt.Sprint(i) { // checks if ping gave a response
+
+				LookUpContactRPC := NewRPC(bootStrapNode, Kademlia.network.routingTable.me.Address, "FINDNODE", "") // lookup contact rpc should just call lookupcontact
 				Kademlia.network.SendMessage(LookUpContactRPC)
-				break
+
+				// Kademlia.LookupContact(Kademlia.network.routingTable.me) // Broken right now so are just doing the rpc call
+
+				break // breaks when node has joined network
+
 			} else {
-				fmt.Println("BOOOTSTRAPONNODENOTONLINE")
+				fmt.Println("BOOOTSTRAP_NODE_NOT_ONLINE")
 			}
 
 			i++
