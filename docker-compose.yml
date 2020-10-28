@@ -27,7 +27,13 @@ services:
 #      - "4000:80"
     networks:
       - kademlia_network
+        # ipv4_address: 10.0.4.5
       
 networks:
   kademlia_network:
+    # ipam:
+    #   driver: default
+    #   config:
+    #     - subnet: 10.0.4.0/16
+        
 

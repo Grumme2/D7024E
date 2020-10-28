@@ -2,6 +2,7 @@ package d7024e
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -14,6 +15,42 @@ func NewKademlia(network *Network) Kademlia {
 }
 
 var alpha = 3
+
+func (Kademlia *Kademlia) JoinNetwork() {
+	myip := GetLocalIP()
+
+	splitIP := strings.Split(myip, ".")
+	splitIPBS := splitIP[:len(splitIP)-1]
+	bootStrapSplitIP := append(splitIPBS, "3")
+	bootStrapIP := strings.Join(bootStrapSplitIP, ".")
+
+	bootStrapNodeStr := "2111111300000000000000000000123000000000"
+	bootStrapKademID := NewKademliaID(&bootStrapNodeStr)
+	bootStrapNode := NewContact(&bootStrapKademID, bootStrapIP)
+
+	if splitIP[3] == "3" {
+		return
+	} else {
+
+		i := 0
+		for {
+
+			pingRPC := NewRPC(Kademlia.network.routingTable.me, bootStrapIP, "PING", fmt.Sprint(i))
+			Kademlia.network.SendMessage(pingRPC)
+			time.Sleep(500 * time.Millisecond)
+			ping, str := Kademlia.network.SendPINGMessage()
+			if ping && str == fmt.Sprint(i) {
+				LookUpContactRPC := NewRPC(bootStrapNode, Kademlia.network.routingTable.me.Address, "FINDNODE", "")
+				Kademlia.network.SendMessage(LookUpContactRPC)
+				break
+			} else {
+				fmt.Println("BOOOTSTRAPONNODENOTONLINE")
+			}
+
+			i++
+		}
+	}
+}
 
 func (kademlia *Kademlia) LookupContact(target *Contact) string {
 	shortlist := ContactCandidates{kademlia.network.routingTable.FindClosestContacts(target.ID, alpha)}
