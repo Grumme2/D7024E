@@ -30,24 +30,36 @@ func (kademlia *Kademlia) LookupContact(target *Contact) string {
 		localContactList := contactList
 		
 		for i := len(localContactList); i > 0; i-- {
-			//TODO: only run if not already contacted !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-			findValueRPC := NewRPC(kademlia.network.routingTable.me, localContactList[i].Address, "FINDNODE", "LookupContact")
-			kademlia.network.SendMessage(findValueRPC)
-			time.Sleep(100 * time.Millisecond) //Give it some time to respond
-			response := kademlia.network.GetFindContactResponse()
-			if (response != "undefined"){
-				responseContacts := kademlia.network.KTriples(response)
-				for j := 0; j < len(responseContacts); j++ {
-					contactList[len(contactList)+1] = responseContacts[j]
-					if (responseContacts[j].Less(&closestNode)){
-						closestNode = responseContacts[j]
-						newClosestNodeFound = true
-					}
+			nodeAlreadyContacted := false
+
+			//Checks if the current contact exists in the contactedNodes list
+			for e := contactedNodes.Front(); e != nil; e = e.Next() {
+				if localContactList[i].ID == e.Value.(Contact).ID {
+					contactList = append(contactList[:i], contactList[i+1:]...) //Removes the i:th element from contactList
+					nodeAlreadyContacted = true
 				}
-			} else {
-				contactList = append(contactList[:i], contactList[i+1:]...) //Removes the i:th element from contactList
 			}
-			contactedNodes.PushBack(localContactList[i])
+
+			if (!nodeAlreadyContacted) {
+				//TODO: only run if not already contacted !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+				findValueRPC := NewRPC(kademlia.network.routingTable.me, localContactList[i].Address, "FINDNODE", "LookupContact")
+				kademlia.network.SendMessage(findValueRPC)
+				time.Sleep(100 * time.Millisecond) //Give it some time to respond
+				response := kademlia.network.GetFindContactResponse()
+				if (response != "undefined"){
+					responseContacts := kademlia.network.KTriples(response)
+					for j := 0; j < len(responseContacts); j++ {
+						contactList[len(contactList)+1] = responseContacts[j]
+						if (responseContacts[j].Less(&closestNode)){
+							closestNode = responseContacts[j]
+							newClosestNodeFound = true
+						}
+					}
+				} else {
+					contactList = append(contactList[:i], contactList[i+1:]...) //Removes the i:th element from contactList
+				}
+				contactedNodes.PushBack(localContactList[i])
+			}
 		}
 	}
 
