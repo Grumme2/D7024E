@@ -21,6 +21,7 @@ func (kademlia *Kademlia) LookupContact(target *Contact) string {
 
 	//Hämtar tre närmsta i ordning
 	contactList := kademlia.network.routingTable.FindClosestContacts(target.ID, alpha)
+	fmt.Println(kademlia.network.KTriplesJSON(contactList))
 	//[]Contact contactedNodes := network.routingTable.me
 	contactedNodes := list.New()
 	closestNode := contactList[0] //First contact given by FindClosestContacts is always the closest
@@ -36,32 +37,31 @@ func (kademlia *Kademlia) LookupContact(target *Contact) string {
 			//Checks if the current contact exists in the contactedNodes list
 			for e := contactedNodes.Front(); e != nil; e = e.Next() {
 				if localContactList[i].ID.Equals(e.Value.(Contact).ID) {
-					contactList = append(contactList[:i], contactList[i+1:]...) //Removes the i:th element from contactList
 					nodeAlreadyContacted = true
 				}
 			}
 
 			//Checks to makes sure the contact isn't yourself
 			if (kademlia.network.routingTable.me.ID.Equals(contactList[i].ID)){
+				fmt.Println(kademlia.network.routingTable.me.ID)
+				fmt.Println(contactList[i].ID)
 				nodeAlreadyContacted = true
+				fmt.Println("Contact is self, removing")
+				fmt.Println(contactList)
 				contactList = append(contactList[:i], contactList[i+1:]...) //Removes the i:th element from contactList
+				fmt.Println(contactList)
 			}
 
 			if (!nodeAlreadyContacted) {
-				//TODO: only run if not already contacted !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 				findValueRPC := NewRPC(kademlia.network.routingTable.me, localContactList[i].Address, "FINDNODE", "LookupContact")
 				kademlia.network.SendMessage(findValueRPC)
 				time.Sleep(100 * time.Millisecond) //Give it some time to respond
 				response := kademlia.network.GetFindContactResponse()
 				if (response != "undefined"){
+					fmt.Println("lookup received response")
 					responseContacts := kademlia.network.KTriples(response)
 					for j := 0; j < len(responseContacts); j++ {
 						contactList = append(contactList, responseContacts[j])
-						//contactList[len(contactList)] = responseContacts[j] //Add current contact to contactlist
-						fmt.Println(kademlia.network.routingTable.me.ID)
-						fmt.Println(responseContacts[j].ID)
-						fmt.Println(responseContacts[j])
-						fmt.Println(closestNode)
 						if !kademlia.network.routingTable.me.ID.Equals(responseContacts[j].ID) {
 							if (kademlia.network.routingTable.me.ID.Equals(closestNode.ID)){
 								closestNode = responseContacts[j]
@@ -73,7 +73,10 @@ func (kademlia *Kademlia) LookupContact(target *Contact) string {
 						}
 					}
 				} else {
+					fmt.Println("lookup did not receive response")
+					fmt.Println(contactList)
 					contactList = append(contactList[:i], contactList[i+1:]...) //Removes the i:th element from contactList
+					fmt.Println(contactList)
 				}
 				contactedNodes.PushBack(localContactList[i])
 			}
@@ -94,7 +97,7 @@ func (kademlia *Kademlia) LookupContact(target *Contact) string {
 		}
 	}
 
-	fmt.Println(len(contactList))
+	fmt.Println(contactList)
 	if len(contactList) > 3 {
 		return kademlia.network.KTriplesJSON(contactList[:3])
 	} else if len(contactList) < 1 {
