@@ -14,10 +14,9 @@ func main() {
 	fmt.Println(splitIP)
 	if splitIP[3] == "3" {
 		mestr := "2111111300000000000000000000123000000000"
-		meid2 := d7024e.NewKademliaID(&mestr)
-		meid = &meid2
+		meid = d7024e.NewKademliaID(&mestr)
 	}
-	me := d7024e.NewContact(meid, ip)
+	me := d7024e.NewContact(&meid, ip)
 	rt := d7024e.NewRoutingTable(me)
 	network := d7024e.NewNetwork(rt)
 	kademlia := d7024e.NewKademlia(&network)
