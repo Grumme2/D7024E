@@ -1,6 +1,7 @@
 package d7024e
 
 import (
+	"encoding/hex"
 	"fmt"
 	"strings"
 	"time"
@@ -41,11 +42,11 @@ func (Kademlia *Kademlia) JoinNetwork() {
 			ping, message := Kademlia.network.SendPINGMessage() // gets ping result
 			if ping && message == fmt.Sprint(i) {               // checks if ping gave a response
 
-				LookUpContactRPC := NewRPC(bootStrapNode, Kademlia.network.routingTable.me.Address, "FINDNODE", "") // lookup contact rpc should just call lookupcontact
-				Kademlia.network.SendMessage(LookUpContactRPC)
-
-				// Kademlia.network.routingTable.AddContact(bootStrapNode)
-				// Kademlia.LookupContact(&Kademlia.network.routingTable.me) // Broken right now so are just doing the rpc call
+				// LookUpContactRPC := NewRPC(bootStrapNode, Kademlia.network.routingTable.me.Address, "FINDNODE", "") // lookup contact rpc should just call lookupcontact
+				// Kademlia.network.SendMessage(LookUpContactRPC)
+				//
+				Kademlia.network.routingTable.AddContact(bootStrapNode)
+				Kademlia.LookupContact(&Kademlia.network.routingTable.me) // Broken right now so are just doing the rpc call
 
 				break // breaks when node has joined network
 
@@ -60,28 +61,33 @@ func (Kademlia *Kademlia) JoinNetwork() {
 
 func (kademlia *Kademlia) LookupContact(target *Contact) string {
 	shortlist := ContactCandidates{kademlia.network.routingTable.FindClosestContacts(target.ID, alpha)}
-	// fmt.Println(shortlist)
+
 	alreadyused := ContactCandidates{contacts: []Contact{}}
-	str := "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
-	id := NewKademliaID(&str)
+
+	id := KademliaID{}
+	decoded, _ := hex.DecodeString("FF")
+
+	for i := 0; i < IDLength; i++ {
+		id[i] = decoded[0]
+	}
 	closestNode := NewContact(&id, "")
 	closestNode.distance = &id
-	less := shortlist.contacts[0].distance.Less(closestNode.distance)
-	equal := shortlist.contacts[0].ID.Equals(target.ID)
-	fmt.Println(less)
-	fmt.Println(equal)
+
 	for shortlist.contacts[0].distance.Less(closestNode.distance) && !shortlist.contacts[0].ID.Equals(target.ID) {
-		//fmt.Println("ENTERCHECK")
+
 		closestNode = shortlist.contacts[0]
-		fmt.Println(closestNode.ID)
+
 		for i := 0; i < 3; i++ {
+			if len(shortlist.contacts) <= i {
+				break
+			}
 			contact := shortlist.contacts[i]
 			if !in(contact, alreadyused.contacts) {
-				findValueRPC := NewRPC(kademlia.network.routingTable.me, contact.Address, "FINDNODE", "")
-				kademlia.network.SendMessage(findValueRPC)
+				findNodeRPC := NewRPC(kademlia.network.routingTable.me, contact.Address, "FINDNODE", "")
+				kademlia.network.SendMessage(findNodeRPC)
 
 				for j := 0; j < 11; j++ {
-					fmt.Println("TEST")
+
 					time.Sleep(500 * time.Millisecond)
 					var data string
 					data = kademlia.network.SendFindContactMessage()
@@ -89,7 +95,7 @@ func (kademlia *Kademlia) LookupContact(target *Contact) string {
 					if data != "" { //If not undefined
 						break //Exit for loop
 					}
-					fmt.Println(data)
+
 					if j == 10 {
 						fmt.Printf("hej")
 						return "ERROR! Did not get response in time"
@@ -97,16 +103,35 @@ func (kademlia *Kademlia) LookupContact(target *Contact) string {
 				}
 				data := kademlia.network.SendFindContactMessage()
 				contacts := kademlia.network.KTriples(data)
+				for k := 0; k < len(contacts); k++ {
+					contacts[k].CalcDistance(kademlia.network.routingTable.me.ID)
 
+				}
 				alreadyused.Append([]Contact{contact})
 				shortlist.Append(contacts)
-				shortlist.Sort()
+				if len(shortlist.contacts) < 2 {
+
+				} else {
+					for i := 0; i < len(shortlist.contacts); i++ {
+						for j := i + 1; j < len(shortlist.contacts); j++ {
+							if shortlist.contacts[j].Less(&shortlist.contacts[i]) {
+								temp := shortlist.contacts[i]
+								shortlist.contacts[i] = shortlist.contacts[j]
+								shortlist.contacts[j] = temp
+							}
+						}
+					}
+				}
+
 			}
 		}
-		shortlist.CutContacts(bucketSize)
+		if len(shortlist.contacts) > bucketSize {
+			shortlist.CutContacts(bucketSize)
+		}
+
 	}
 	KTrJson := kademlia.network.KTriplesJSON(shortlist.contacts)
-	//fmt.Println(KTrJson)
+
 	return KTrJson
 
 }

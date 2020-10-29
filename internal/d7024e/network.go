@@ -205,7 +205,6 @@ func (network *Network) ListenHandler(receivedData []byte, connection *net.UDPCo
 		//fmt.Println(closestEncoded)
 
 	case "FINDNODE_RESPONSE":
-		fmt.Println("FFFFFFFFFFUUUUUUUUCCCCCCCCKKKKKKKKKK")
 		network.lookUpContactResponse = LookUpContactResponse{decodedData.Content}
 		fmt.Println(network.lookUpContactResponse)
 		responseType = "NONE"

@@ -8,9 +8,9 @@ import (
 // Contact definition
 // stores the KademliaID, the ip address and the distance
 type Contact struct {
-	ID       *KademliaID
-	Address  string
-	distance *KademliaID
+	ID            *KademliaID
+	Address       string
+	distance      *KademliaID
 	KeyValueStore map[string]string
 }
 
@@ -27,6 +27,8 @@ func (contact *Contact) CalcDistance(target *KademliaID) {
 
 // Less returns true if contact.distance < otherContact.distance
 func (contact *Contact) Less(otherContact *Contact) bool {
+	fmt.Println(contact.distance)
+	fmt.Println(otherContact.distance)
 	return contact.distance.Less(otherContact.distance)
 }
 
