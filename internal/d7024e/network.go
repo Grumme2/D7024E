@@ -183,13 +183,10 @@ func (network *Network) ListenHandler(receivedData []byte, connection *net.UDPCo
 	case "FINDVALUE":
 		dataFound, data := network.LookForData(decodedData.Content)
 		if dataFound {
-			fmt.Println("FINDVALUE found")
 			responseType = "FINDVALUE_RESPONSE"
 			lookupResponse := LookUpDataResponse{true, data, network.routingTable.me}
-			fmt.Println(lookupResponse)
 			responseContent = network.JSONEncodeLookUpDataResponse(lookupResponse)
 		} else {
-			fmt.Println("FINDVALUE did not find")
 			responseType = "FINDVALUE_RESPONSE"
 			closest := network.routingTable.FindClosestContacts(network.routingTable.me.ID, bucketSize)
 			closestEncoded := network.KTriplesJSON(closest)
@@ -197,10 +194,8 @@ func (network *Network) ListenHandler(receivedData []byte, connection *net.UDPCo
 			responseContent = network.JSONEncodeLookUpDataResponse(lookupResponse)
 		}
 	case "FINDVALUE_RESPONSE":
-		fmt.Println("FINDVALUE_RESPONSE")
 		var data = network.JSONDecodeLookUpDataResponse(decodedData.Content)
-		fmt.Println(data)
-		network.lookUpDataResponse = LookUpDataResponse{data.DataFound, data.Data, data.Node}
+		network.lookUpDataResponse = data
 		responseType = "NONE"
 	case "FINDNODE":
 		responseType = "FINDNODE_RESPONSE"
@@ -292,7 +287,7 @@ func (network *Network) KTriples(KClosest string) []Contact {
 		fmt.Println(err)
 		//return "ERROR"
 	}
-
+	fmt.Println(contacts)
 	return contacts
 }
 

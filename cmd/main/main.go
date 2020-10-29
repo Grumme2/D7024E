@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/Grumme2/D7024E/internal/d7024e"
-	//"fmt"
 )
 
 func main() {

@@ -23,12 +23,11 @@ func (Kademlia *Kademlia) JoinNetwork() {
 	x, splitIP := splitIP[len(splitIP)-1], splitIP[:len(splitIP)-1] //poping last element
 
 	bootStrapSplitIP := append(splitIP, "3")
-	bootStrapIP := strings.Join(bootStrapSplitIP, ".") // Bootstrap nodes iP address
-
+	bootStrapIP := strings.Join(bootStrapSplitIP, ".")             // Bootstrap nodes iP address
 	bootStrapNodeStr := "2111111300000000000000000000123000000000" // hardcoded bootstrapnode ID
 	bootStrapKademID := NewKademliaID(&bootStrapNodeStr)
 	bootStrapNode := NewContact(&bootStrapKademID, bootStrapIP)
-	fmt.Println(x)
+
 	if x == "3" { // if Bootstrap node nothing needs to be done
 		fmt.Println("bootstrapnode")
 		return
@@ -67,8 +66,6 @@ func (kademlia *Kademlia) LookupContact(target *Contact) string {
 	id := NewKademliaID(&str)
 	closestNode := NewContact(&id, "")
 	closestNode.distance = &id
-	fmt.Println(shortlist.contacts[0].distance)
-	fmt.Println(closestNode.distance)
 	less := shortlist.contacts[0].distance.Less(closestNode.distance)
 	equal := shortlist.contacts[0].ID.Equals(target.ID)
 	fmt.Println(less)
@@ -191,8 +188,8 @@ func (kademlia *Kademlia) JoinNetwork(target *Contact) {
 */
 
 func (kademlia *Kademlia) Store(data string) {
-	closestjson := kademlia.LookupContact(&kademlia.network.routingTable.me)
-	closest := kademlia.network.KTriples(closestjson)
+	closestJson := kademlia.LookupContact(&kademlia.network.routingTable.me)
+	closest := kademlia.network.KTriples(closestJson)
 	for i := 0; i < len(closest); i++ {
 		rpc := NewRPC(kademlia.network.routingTable.me, closest[i].Address, "STORE", data)
 		kademlia.network.storeRPC(rpc)

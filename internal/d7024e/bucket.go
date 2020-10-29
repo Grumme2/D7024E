@@ -2,6 +2,7 @@ package d7024e
 
 import (
 	"container/list"
+	//"fmt"
 )
 
 // bucket definition
@@ -53,12 +54,17 @@ func (bucket *bucket) GetContactAndCalcDistance(target *KademliaID) []Contact {
 }
 
 func (bucket *bucket) RemoveContact(contact Contact) {
-	for element := bucket.list.Front(); element != nil; element.Next() {
-		nID := element.Value.(Contact).ID
-		if contact.ID.Equals(nID) {
-			bucket.list.Remove(element)
-			return
+	var element *list.Element
+	for e := bucket.list.Front(); e != nil; e = e.Next() {
+		nodeID := e.Value.(Contact).ID
+
+		if (contact).ID.Equals(nodeID) {
+			element = e
 		}
+	}
+
+	if element != nil {
+		bucket.list.Remove(element)
 	}
 }
 
