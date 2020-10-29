@@ -23,7 +23,7 @@ func main() {
 
 	go network.Listen()
 	go network.CheckNodesAwaitingResponse()
-	// kademlia.JoinNetwork()
+	kademlia.JoinNetwork()
 
 	fmt.Println(me.Address)
 	// go network.Listen()
