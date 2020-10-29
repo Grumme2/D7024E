@@ -37,6 +37,9 @@ func (cli *cli) AwaitCommand(){
 			} else {
 				fmt.Println("Error! Invalid arguments!")
 			}
+		case "SELFLOOKUP":
+			response := cli.kademlia.LookupContact(&cli.kademlia.network.routingTable.me)
+			fmt.Println(response)
 		case "PUTIP":
 			if (len(inputSplit) == 3) {
 				fileUpload := inputSplit[1]

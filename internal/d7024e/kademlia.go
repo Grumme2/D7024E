@@ -30,15 +30,21 @@ func (kademlia *Kademlia) LookupContact(target *Contact) string {
 		newClosestNodeFound = false
 		localContactList := contactList
 		
-		for i := len(localContactList); i > 0; i-- {
+		for i := (len(localContactList) - 1); i == 0; i-- {
 			nodeAlreadyContacted := false
 
 			//Checks if the current contact exists in the contactedNodes list
 			for e := contactedNodes.Front(); e != nil; e = e.Next() {
-				if localContactList[i].ID == e.Value.(Contact).ID {
+				if localContactList[i].ID.Equals(e.Value.(Contact).ID) {
 					contactList = append(contactList[:i], contactList[i+1:]...) //Removes the i:th element from contactList
 					nodeAlreadyContacted = true
 				}
+			}
+
+			//Checks to makes sure the contact isn't yourself
+			if (kademlia.network.routingTable.me.ID.Equals(contactList[i].ID)){
+				nodeAlreadyContacted = true
+				contactList = append(contactList[:i], contactList[i+1:]...) //Removes the i:th element from contactList
 			}
 
 			if (!nodeAlreadyContacted) {
@@ -50,10 +56,20 @@ func (kademlia *Kademlia) LookupContact(target *Contact) string {
 				if (response != "undefined"){
 					responseContacts := kademlia.network.KTriples(response)
 					for j := 0; j < len(responseContacts); j++ {
-						contactList[len(contactList)+1] = responseContacts[j]
-						if (responseContacts[j].Less(&closestNode)){
-							closestNode = responseContacts[j]
-							newClosestNodeFound = true
+						contactList = append(contactList, responseContacts[j])
+						//contactList[len(contactList)] = responseContacts[j] //Add current contact to contactlist
+						fmt.Println(kademlia.network.routingTable.me.ID)
+						fmt.Println(responseContacts[j].ID)
+						fmt.Println(responseContacts[j])
+						fmt.Println(closestNode)
+						if !kademlia.network.routingTable.me.ID.Equals(responseContacts[j].ID) {
+							if (kademlia.network.routingTable.me.ID.Equals(closestNode.ID)){
+								closestNode = responseContacts[j]
+								newClosestNodeFound = true
+							} else if (responseContacts[j].Less(&closestNode)){
+								closestNode = responseContacts[j]
+								newClosestNodeFound = true
+							}
 						}
 					}
 				} else {
@@ -63,6 +79,9 @@ func (kademlia *Kademlia) LookupContact(target *Contact) string {
 			}
 		}
 	}
+
+	//fmt.Println("Unsorted output: ")
+	//fmt.Println(contactList)
 
 	//Manually sorts contacts
 	for i := 0; i < len(contactList); i++ {
@@ -75,7 +94,14 @@ func (kademlia *Kademlia) LookupContact(target *Contact) string {
 		}
 	}
 
-	return kademlia.network.KTriplesJSON(contactList[:3])
+	fmt.Println(len(contactList))
+	if len(contactList) > 3 {
+		return kademlia.network.KTriplesJSON(contactList[:3])
+	} else if len(contactList) < 1 {
+		return "EMPTY"
+	} else {
+		return kademlia.network.KTriplesJSON(contactList[:len(contactList)-1])
+	}
 }
 
 /*
