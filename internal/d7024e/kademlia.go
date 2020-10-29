@@ -27,6 +27,7 @@ func (kademlia *Kademlia) LookupContact(target *Contact) string {
 	newClosestNodeFound := true
 
 	for (newClosestNodeFound) {
+		newClosestNodeFound = false
 		localContactList := contactList
 		
 		for i := len(localContactList); i > 0; i-- {
