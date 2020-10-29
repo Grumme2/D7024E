@@ -61,9 +61,7 @@ func (Kademlia *Kademlia) JoinNetwork() {
 
 func (kademlia *Kademlia) LookupContact(target *Contact) string {
 	shortlist := ContactCandidates{kademlia.network.routingTable.FindClosestContacts(target.ID, alpha)}
-
 	alreadyused := ContactCandidates{contacts: []Contact{}}
-
 	id := KademliaID{}
 	decoded, _ := hex.DecodeString("FF")
 
@@ -109,9 +107,7 @@ func (kademlia *Kademlia) LookupContact(target *Contact) string {
 				}
 				alreadyused.Append([]Contact{contact})
 				shortlist.Append(contacts)
-				if len(shortlist.contacts) < 2 {
-
-				} else {
+				if len(shortlist.contacts) >= 2 {
 					for i := 0; i < len(shortlist.contacts); i++ {
 						for j := i + 1; j < len(shortlist.contacts); j++ {
 							if shortlist.contacts[j].Less(&shortlist.contacts[i]) {
@@ -131,7 +127,8 @@ func (kademlia *Kademlia) LookupContact(target *Contact) string {
 
 	}
 	KTrJson := kademlia.network.KTriplesJSON(shortlist.contacts)
-
+	fmt.Println(KTrJson)
+	fmt.Println(kademlia.network.routingTable.me)
 	return KTrJson
 
 }
@@ -148,11 +145,17 @@ func in(a Contact, list []Contact) bool {
 func (kademlia *Kademlia) LookupData(hash string) (bool, string, Contact) {
 	kademlia.network.lookUpDataResponse = LookUpDataResponse{} //Resets LookUpDataResponse so we dont collect old results
 	newkademid := NewKademliaID(&hash)
-	closest := kademlia.network.routingTable.FindClosestContacts(&newkademid, alpha)
-	//Add if statement to check if closest is empty
-	closestNode := closest[0]
-	shortlist := ContactCandidates{contacts: closest}
+
+	shortlist := ContactCandidates{kademlia.network.routingTable.FindClosestContacts(&newkademid, alpha)}
 	alreadyused := ContactCandidates{contacts: []Contact{}}
+	id := KademliaID{}
+	decoded, _ := hex.DecodeString("FF")
+
+	for i := 0; i < IDLength; i++ {
+		id[i] = decoded[0]
+	}
+	closestNode := NewContact(&id, "")
+	closestNode.distance = &id
 	for shortlist.contacts[0].distance.Less(closestNode.distance) && !shortlist.contacts[0].ID.Equals(&newkademid) {
 		closestNode = shortlist.contacts[0]
 		for i := 0; i < 3; i++ {
@@ -177,15 +180,31 @@ func (kademlia *Kademlia) LookupData(hash string) (bool, string, Contact) {
 					return true, data, node
 				} else {
 					contacts = kademlia.network.KTriples(data)
+					for k := 0; k < len(contacts); k++ {
+						contacts[k].CalcDistance(kademlia.network.routingTable.me.ID)
+
+					}
 				}
 
 				alreadyused.Append([]Contact{contact})
 				shortlist.Append(contacts)
-				shortlist.Sort()
+				if len(shortlist.contacts) >= 2 {
+					for i := 0; i < len(shortlist.contacts); i++ {
+						for j := i + 1; j < len(shortlist.contacts); j++ {
+							if shortlist.contacts[j].Less(&shortlist.contacts[i]) {
+								temp := shortlist.contacts[i]
+								shortlist.contacts[i] = shortlist.contacts[j]
+								shortlist.contacts[j] = temp
+							}
+						}
+					}
+				}
 
 			}
 		}
-		shortlist.CutContacts(bucketSize)
+		if len(shortlist.contacts) > bucketSize {
+			shortlist.CutContacts(bucketSize)
+		}
 	}
 	return false, kademlia.network.KTriplesJSON(shortlist.contacts), kademlia.network.routingTable.me
 }
