@@ -14,6 +14,7 @@ type Network struct {
 	awaitingResponseList  *list.List
 	lookUpDataResponse    LookUpDataResponse
 	lookUpContactResponse LookUpContactResponse
+	pingResponse          PINGResponse
 }
 
 type LookUpDataResponse struct {
@@ -26,6 +27,11 @@ type LookUpContactResponse struct {
 	data string
 }
 
+type PINGResponse struct {
+	pong bool
+	data string
+}
+
 type AwaitingResponseObject struct {
 	timestamp int64
 	oldNode   Contact
@@ -35,7 +41,8 @@ type AwaitingResponseObject struct {
 func NewNetwork(rt *RoutingTable) Network {
 	emptyLookUpData := LookUpDataResponse{}
 	emptyLookUpContact := LookUpContactResponse{}
-	return Network{rt, list.New(), emptyLookUpData, emptyLookUpContact}
+	emptyPINGresponse := PINGResponse{}
+	return Network{rt, list.New(), emptyLookUpData, emptyLookUpContact, emptyPINGresponse}
 }
 
 func GetLocalIP() string {
@@ -166,6 +173,7 @@ func (network *Network) ListenHandler(receivedData []byte, connection *net.UDPCo
 	switch decodedData.MessageType {
 	case "PING":
 		responseType = "PONG"
+		responseContent = decodedData.Content
 	case "OK":
 		responseType = "NONE"
 	case "STORE":
@@ -175,13 +183,10 @@ func (network *Network) ListenHandler(receivedData []byte, connection *net.UDPCo
 	case "FINDVALUE":
 		dataFound, data := network.LookForData(decodedData.Content)
 		if dataFound {
-			fmt.Println("FINDVALUE found")
 			responseType = "FINDVALUE_RESPONSE"
 			lookupResponse := LookUpDataResponse{true, data, network.routingTable.me}
-			fmt.Println(lookupResponse)
 			responseContent = network.JSONEncodeLookUpDataResponse(lookupResponse)
 		} else {
-			fmt.Println("FINDVALUE did not find")
 			responseType = "FINDVALUE_RESPONSE"
 			closest := network.routingTable.FindClosestContacts(network.routingTable.me.ID, bucketSize)
 			closestEncoded := network.KTriplesJSON(closest)
@@ -189,10 +194,8 @@ func (network *Network) ListenHandler(receivedData []byte, connection *net.UDPCo
 			responseContent = network.JSONEncodeLookUpDataResponse(lookupResponse)
 		}
 	case "FINDVALUE_RESPONSE":
-		fmt.Println("FINDVALUE_RESPONSE")
 		var data = network.JSONDecodeLookUpDataResponse(decodedData.Content)
-		fmt.Println(data)
-		network.lookUpDataResponse = LookUpDataResponse{data.DataFound, data.Data, data.Node}
+		network.lookUpDataResponse = data
 		responseType = "NONE"
 	case "FINDNODE":
 		responseType = "FINDNODE_RESPONSE"
@@ -202,11 +205,13 @@ func (network *Network) ListenHandler(receivedData []byte, connection *net.UDPCo
 		//fmt.Println(closestEncoded)
 
 	case "FINDNODE_RESPONSE":
-		fmt.Println("FFFFFFFFFFUUUUUUUUCCCCCCCCKKKKKKKKKK")
 		network.lookUpContactResponse = LookUpContactResponse{decodedData.Content}
 		fmt.Println(network.lookUpContactResponse)
 		responseType = "NONE"
 
+	case "PONG":
+		network.pingResponse = PINGResponse{true, decodedData.Content}
+		responseType = "NONE"
 	}
 
 	if responseType != "NONE" && responseType != "UNDEFINED" {
@@ -281,7 +286,7 @@ func (network *Network) KTriples(KClosest string) []Contact {
 		fmt.Println(err)
 		//return "ERROR"
 	}
-
+	fmt.Println(contacts)
 	return contacts
 }
 
@@ -292,6 +297,10 @@ func (network *Network) SendFindContactMessage() string {
 
 func (network *Network) SendFindDataMessage() (bool, string, Contact) {
 	return network.lookUpDataResponse.DataFound, network.lookUpDataResponse.Data, network.lookUpDataResponse.Node
+}
+
+func (network *Network) SendPINGMessage() (bool, string) {
+	return network.pingResponse.pong, network.pingResponse.data
 }
 
 func (network *Network) SendStoreMessage(data []byte) {
