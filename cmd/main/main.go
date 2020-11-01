@@ -22,6 +22,7 @@ func main() {
 	kademlia := d7024e.NewKademlia(&network)
 
 	go network.Listen()
+	go network.ListenHandler()
 	go network.CheckNodesAwaitingResponse()
 	kademlia.JoinNetwork()
 
