@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 	"time"
+
 	//"reflect"
 	"github.com/stretchr/testify/assert"
 )
@@ -27,21 +28,32 @@ func TestIn(t *testing.T) {
 
 func TestNodeLookup(t *testing.T) {
 	sender := NewRandomKademliaID()
-    time.Sleep(2 * time.Millisecond)
-    recivier := NewRandomKademliaID()
-    time.Sleep(2 * time.Millisecond)
+	time.Sleep(2 * time.Millisecond)
+	recivier := NewRandomKademliaID()
+	time.Sleep(2 * time.Millisecond)
 	rtContactId := NewRandomKademliaID()
-	
-	me := NewContact(&sender, "localhost:8000")
-	rtContact := NewContact(&rtContactId, "localhost:8090")
+
+	me := NewContact(&sender, "localhost")
+	rtContact := NewContact(&rtContactId, "localhost")
+	fmt.Println(rtContactId)
+	fmt.Println(recivier)
+	fmt.Println(sender)
 	rt := NewRoutingTable(me)
 	network := NewNetwork(rt)
+	network.testing = true
 	kademlia := NewKademlia(&network)
-	kademlia.network.routingTable.AddContact(NewContact(&recivier, "localhost:8001"))
-	go network.ListenHandler()
+	kademlia.network.routingTable.AddContact(NewContact(&recivier, "localhost"))
+	go kademlia.network.ListenHandler()
 	go kademlia.LookupContact(&rtContact)
-	msg := <- kademlia.network.external
-	fmt.Printf(string(msg))
+	msg := <-kademlia.network.external
+
+	kademlia.network.internal <- ([]byte(`{"Sender":{"ID":[231,205,186,234,201,191,37,0,152,73,69,204,229,218,76,111,180,130,157,187],"Address":"localhost","KeyValueStore":{}},"TargetAddress":"localhost","MessageType":"FINDNODE_RESPONSE","Content":"[{\"ID\":[102,159,97,68,64,247,25,46,20,234,95,186,73,44,149,86,215,64,136,169],\"Address\":\"localhost\",\"KeyValueStore\":{}}]"}`))
+	// msg2 := <-kademlia.network.external
+
+	kademlia.network.internal <- ([]byte(`{"Sender":{"ID":[102,159,97,68,64,247,25,46,20,234,95,186,73,44,149,86,215,64,136,169],"Address":"localhost","KeyValueStore":{}},"TargetAddress":"localhost","MessageType":"FINDNODE_RESPONSE","Content":"[{\"ID\":[231,205,186,234,201,191,37,0,152,73,69,204,229,218,76,111,180,130,157,187],\"Address\":\"localhost\",\"KeyValueStore\":{}}]"}`))
+
+	fmt.Printf("msg: " + string(msg))
+	// fmt.Println("msg2: " + string(msg2))
 }
 
 // func TestLookupData(t *testing.T) {

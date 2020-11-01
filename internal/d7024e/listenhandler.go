@@ -1,6 +1,6 @@
 package d7024e
 
-import(
+import (
 	"fmt"
 	"time"
 	//"net"
@@ -8,10 +8,10 @@ import(
 
 func (network *Network) ListenHandler() {
 	for {
-		receivedData := <- network.internal
+		receivedData := <-network.internal
 		decodedData := JSONDecode(receivedData)
 		fmt.Println("RECEIVED:\n", string(receivedData))
-	
+
 		//True if contact already is in bucket
 		if network.routingTable.buckets[network.routingTable.GetBucketIndex(decodedData.Sender.ID)].IsContactInBucket(decodedData.Sender) {
 			network.routingTable.AddContact(decodedData.Sender) //Move contact to start of bucket
@@ -21,7 +21,7 @@ func (network *Network) ListenHandler() {
 			bucketIndex := network.routingTable.GetBucketIndex(decodedData.Sender.ID)
 			tailContact := network.routingTable.buckets[bucketIndex].list.Back().Value.(Contact) //Vet ej om detta faktiskt stämmer
 			currentTime := time.Now().Unix()
-	
+
 			awaitingResponseData := AwaitingResponseObject{currentTime, tailContact, decodedData.Sender}
 			network.awaitingResponseList.PushFront(awaitingResponseData)
 			pingRPC := NewRPC(network.routingTable.me, tailContact.Address, "PING", "")
@@ -29,10 +29,10 @@ func (network *Network) ListenHandler() {
 		} else {
 			network.routingTable.AddContact(decodedData.Sender) //Adds contact to start of the bucket
 		}
-	
+
 		responseType := "UNDEFINED"
 		responseContent := "defaultNetworkResponse"
-	
+
 		switch decodedData.MessageType {
 		case "PING":
 			responseType = "PONG"
@@ -65,22 +65,22 @@ func (network *Network) ListenHandler() {
 			closest := network.routingTable.FindClosestContacts(network.routingTable.me.ID, bucketSize)
 			//fmt.Println(closest)
 			responseContent = network.KTriplesJSON(closest)
-			//fmt.Println(closestEncoded)
-	
+
 		case "FINDNODE_RESPONSE":
+			fmt.Println("enter check")
 			network.lookUpContactResponse = LookUpContactResponse{decodedData.Content}
 			fmt.Println(network.lookUpContactResponse)
 			responseType = "NONE"
-	
+
 		case "PONG":
 			network.pingResponse = PINGResponse{true, decodedData.Content}
 			responseType = "NONE"
 		}
-	
+
 		if responseType != "NONE" && responseType != "UNDEFINED" {
 			responseRPC := NewRPC(network.routingTable.me, decodedData.Sender.Address, responseType, responseContent)
 			network.SendMessage(responseRPC)
-	
+
 		} else { //No response if the messagetype is NONE or UNDEFINED
 			fmt.Println("Received 'OK', 'PONG' or 'UNDEFINED' message. Conversation done.")
 		}
