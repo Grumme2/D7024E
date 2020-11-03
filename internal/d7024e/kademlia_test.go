@@ -48,12 +48,27 @@ func TestNodeLookup(t *testing.T) {
 	msg := <-kademlia.network.external
 
 	kademlia.network.internal <- ([]byte(`{"Sender":{"ID":[231,205,186,234,201,191,37,0,152,73,69,204,229,218,76,111,180,130,157,187],"Address":"localhost","KeyValueStore":{}},"TargetAddress":"localhost","MessageType":"FINDNODE_RESPONSE","Content":"[{\"ID\":[102,159,97,68,64,247,25,46,20,234,95,186,73,44,149,86,215,64,136,169],\"Address\":\"localhost\",\"KeyValueStore\":{}}]"}`))
+	time.Sleep(500 * time.Millisecond)
 	// msg2 := <-kademlia.network.external
 
-	kademlia.network.internal <- ([]byte(`{"Sender":{"ID":[102,159,97,68,64,247,25,46,20,234,95,186,73,44,149,86,215,64,136,169],"Address":"localhost","KeyValueStore":{}},"TargetAddress":"localhost","MessageType":"FINDNODE_RESPONSE","Content":"[{\"ID\":[231,205,186,234,201,191,37,0,152,73,69,204,229,218,76,111,180,130,157,187],\"Address\":\"localhost\",\"KeyValueStore\":{}}]"}`))
+	// kademlia.network.internal <- ([]byte(`{"Sender":{"ID":[102,159,97,68,64,247,25,46,20,234,95,186,73,44,149,86,215,64,136,169],"Address":"localhost","KeyValueStore":{}},"TargetAddress":"localhost","MessageType":"FINDNODE_RESPONSE","Content":"[{\"ID\":[231,205,186,234,201,191,37,0,152,73,69,204,229,218,76,111,180,130,157,187],\"Address\":\"localhost\",\"KeyValueStore\":{}}]"}`))
 
-	fmt.Printf("msg: " + string(msg))
+	// kademlia.network.internal <- ([]byte(`{"Sender":{"ID":[231,205,186,234,201,191,37,0,152,73,69,204,229,218,76,111,180,130,157,187],"Address":"localhost","KeyValueStore":{}},"TargetAddress":"localhost","MessageType":"FINDNODE_RESPONSE","Content":"[{\"ID\":[102,159,97,68,64,247,25,46,20,234,95,186,73,44,149,86,215,64,136,169],\"Address\":\"localhost\",\"KeyValueStore\":{}}]"}`))
+	// kademlia.network.internal <- ([]byte(`{"Sender":{"ID":[102,159,97,68,64,247,25,46,20,234,95,186,73,44,149,86,215,64,136,169],"Address":"localhost","KeyValueStore":{}},"TargetAddress":"localhost","MessageType":"FINDNODE_RESPONSE","Content":"[{\"ID\":[231,205,186,234,201,191,37,0,152,73,69,204,229,218,76,111,180,130,157,187],\"Address\":\"localhost\",\"KeyValueStore\":{}}]"}`))
+	// msg3 := <-kademlia.network.external
+
+	// kademlia.netgo tool cover -html=coverage.outwork.internal <- ([]byte(`{"Sender":{"ID":[231,205,186,234,201,191,37,0,152,73,69,204,229,218,76,111,180,130,157,187],"Address":"localhost","KeyValueStore":{}},"TargetAddress":"localhost","MessageType":"FINDNODE_RESPONSE","Content":"[{\"ID\":[102,159,97,68,64,247,25,46,20,234,95,186,73,44,149,86,215,64,136,169],\"Address\":\"localhost\",\"KeyValueStore\":{}}]"}`))
+	// kademlia.network.internal <- ([]byte(`{"Sender":{"ID":[102,159,97,68,64,247,25,46,20,234,95,186,73,44,149,86,215,64,136,169],"Address":"localhost","KeyValueStore":{}},"TargetAddress":"localhost","MessageType":"FINDNODE_RESPONSE","Content":"[{\"ID\":[231,205,186,234,201,191,37,0,152,73,69,204,229,218,76,111,180,130,157,187],\"Address\":\"localhost\",\"KeyValueStore\":{}}]"}`))
+
+	// kademlia.network.internal <- ([]byte(`{"Sender":{"ID":[231,205,186,234,201,191,37,0,152,73,69,204,229,218,76,111,180,130,157,187],"Address":"localhost","KeyValueStore":{}},"TargetAddress":"localhost","MessageType":"FINDNODE_RESPONSE","Content":"[{\"ID\":[102,159,97,68,64,247,25,46,20,234,95,186,73,44,149,86,215,64,136,169],\"Address\":\"localhost\",\"KeyValueStore\":{}}]"}`))
+	// kademlia.network.internal <- ([]byte(`{"Sender":{"ID":[102,159,97,68,64,247,25,46,20,234,95,186,73,44,149,86,215,64,136,169],"Address":"localhost","KeyValueStore":{}},"TargetAddress":"localhost","MessageType":"FINDNODE_RESPONSE","Content":"[{\"ID\":[231,205,186,234,201,191,37,0,152,73,69,204,229,218,76,111,180,130,157,187],\"Address\":\"localhost\",\"KeyValueStore\":{}}]"}`))
+
+	// msg4 := <-kademlia.network.external
+
+	fmt.Println("msg: " + string(msg))
 	// fmt.Println("msg2: " + string(msg2))
+	// fmt.Println("msg3: " + string(msg3))
+	// fmt.Println("msg4: " + string(msg4))
 }
 
 // func TestLookupData(t *testing.T) {
@@ -79,4 +94,34 @@ func TestNodeLookup(t *testing.T) {
 // assert.Equal(t, con2.ID, shortlist[0].ID)
 //
 // }
-//
+
+func TestStore(t *testing.T) {
+	sender := NewRandomKademliaID()
+	time.Sleep(2 * time.Millisecond)
+	recivier := NewRandomKademliaID()
+	time.Sleep(2 * time.Millisecond)
+	rtContactId := NewRandomKademliaID()
+
+	me := NewContact(&sender, "localhost")
+	rtContact := NewContact(&rtContactId, "localhost")
+	fmt.Println(rtContactId)
+	fmt.Println(recivier)
+	fmt.Println(sender)
+	rt := NewRoutingTable(me)
+	rt.AddContact(rtContact)
+	network := NewNetwork(rt)
+	network.testing = true
+	kademlia := NewKademlia(&network)
+	kademlia.network.routingTable.AddContact(NewContact(&recivier, "localhost"))
+	go kademlia.network.ListenHandler()
+	go kademlia.Store("test")
+	msg := <-kademlia.network.external
+
+	kademlia.network.internal <- ([]byte(`{"Sender":{"ID":[231,205,186,234,201,191,37,0,152,73,69,204,229,218,76,111,180,130,157,187],"Address":"localhost","KeyValueStore":{}},"TargetAddress":"localhost","MessageType":"FINDNODE_RESPONSE","Content":"[{\"ID\":[102,159,97,68,64,247,25,46,20,234,95,186,73,44,149,86,215,64,136,169],\"Address\":\"localhost\",\"KeyValueStore\":{}}]"}`))
+	time.Sleep(500 * time.Millisecond)
+	kademlia.network.internal <- ([]byte(`{"Sender":{"ID":[102,159,97,68,64,247,25,46,20,234,95,186,73,44,149,86,215,64,136,169],"Address":"localhost","KeyValueStore":{}},"TargetAddress":"localhost","MessageType":"FINDNODE_RESPONSE","Content":"[{\"ID\":[231,205,186,234,201,191,37,0,152,73,69,204,229,218,76,111,180,130,157,187],\"Address\":\"localhost\",\"KeyValueStore\":{}}]"}`))
+
+	msg2 := <-kademlia.network.external
+	fmt.Println("msg: " + string(msg))
+	fmt.Println("msg2: " + string(msg2))
+}

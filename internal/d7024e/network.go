@@ -16,8 +16,8 @@ type Network struct {
 	lookUpContactResponse LookUpContactResponse
 	pingResponse          PINGResponse
 	testing               bool
-	internal 			  chan []byte
-	external			  chan []byte
+	internal              chan []byte
+	external              chan []byte
 }
 
 type LookUpDataResponse struct {
@@ -75,11 +75,6 @@ func (network *Network) CheckNodesAwaitingResponse() {
 
 	for e := network.awaitingResponseList.Front(); e != nil; e = e.Next() {
 		nodeTimestamp := e.Value.(AwaitingResponseObject).timestamp
-		fmt.Println(nodeTimestamp)
-		fmt.Println(currentTime)
-		fmt.Println(currentTime - nodeTimestamp)
-		fmt.Println(e.Value.(AwaitingResponseObject).oldNode)
-		fmt.Println(e.Value.(AwaitingResponseObject).newNode)
 		if (currentTime - nodeTimestamp) >= 5 { //If 5 seconds or more have passed
 			network.routingTable.RemoveContact(e.Value.(AwaitingResponseObject).oldNode)
 			network.routingTable.AddContact(e.Value.(AwaitingResponseObject).newNode)
@@ -90,12 +85,6 @@ func (network *Network) CheckNodesAwaitingResponse() {
 
 	time.Sleep(2 * time.Second) //Checks every two seconds
 	network.CheckNodesAwaitingResponse()
-}
-
-func (network *Network) TestCreateAwaitingReponseObjects() {
-	currentTime := time.Now().Unix()
-	awaitingResponseData := AwaitingResponseObject{currentTime, network.routingTable.me, NewContact(network.routingTable.me.ID, "hehehe")}
-	network.awaitingResponseList.PushFront(awaitingResponseData)
 }
 
 func (network *Network) Listen() {
@@ -125,7 +114,7 @@ func (network *Network) Listen() {
 }
 
 func (network *Network) SendMessage(message RPC) {
-	if (network.testing) {
+	if network.testing {
 		network.external <- []byte(JSONEncode(message))
 		return
 	}
@@ -152,8 +141,6 @@ func (network *Network) SendMessage(message RPC) {
 		return
 	}
 }
-
-
 
 func (network *Network) AddToStore(message string) string {
 	hxMsg := network.MakeHash(message)
@@ -234,5 +221,3 @@ func (network *Network) SendFindDataMessage() (bool, string, Contact) {
 func (network *Network) SendPINGMessage() (bool, string) {
 	return network.pingResponse.pong, network.pingResponse.data
 }
-
-

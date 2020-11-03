@@ -84,3 +84,114 @@ func TestKriplesJSON(t *testing.T) {
 //
 //
 // }
+
+func TestJSONLookUpDataResponse(t *testing.T) {
+	mestr := "FFFFFFFF00000000000000000000000000000000"
+	str1 := "FFFFFFFF00000000000000000000000000000000"
+	str2 := "1111111100000000000000000000000000000000"
+
+	meid := NewKademliaID(&mestr)
+	id1 := NewKademliaID(&str1)
+	id2 := NewKademliaID(&str2)
+	rt := NewRoutingTable(NewContact(&meid, "localhost"))
+	con1 := NewContact(&id1, "localhost")
+	con2 := NewContact(&id2, "localhost")
+	rt.AddContact(con1)
+	rt.AddContact(con2)
+	network := NewNetwork(rt)
+
+	str3 := "FFFFFFFF00000000000000000000000000000001"
+	id3 := NewKademliaID(&str3)
+	con3 := NewContact(&id3, "localhost")
+
+	lookUpDataResponse := LookUpDataResponse{true, "test", con3}
+
+	str := network.JSONEncodeLookUpDataResponse(lookUpDataResponse)
+	fin := network.JSONDecodeLookUpDataResponse(str)
+
+	assert.Equal(t, fin.DataFound, true)
+	assert.Equal(t, fin.Data, "test")
+	assert.Equal(t, fin.Node, con3)
+
+}
+
+func TestSendXMessage(t *testing.T) {
+	mestr := "FFFFFFFF00000000000000000000000000000000"
+	str1 := "FFFFFFFF00000000000000000000000000000000"
+	str2 := "1111111100000000000000000000000000000000"
+
+	meid := NewKademliaID(&mestr)
+	id1 := NewKademliaID(&str1)
+	id2 := NewKademliaID(&str2)
+	rt := NewRoutingTable(NewContact(&meid, "localhost"))
+	con1 := NewContact(&id1, "localhost")
+	con2 := NewContact(&id2, "localhost")
+	rt.AddContact(con1)
+	rt.AddContact(con2)
+	network := NewNetwork(rt)
+
+	str3 := "FFFFFFFF00000000000000000000000000000001"
+	id3 := NewKademliaID(&str3)
+	con3 := NewContact(&id3, "localhost")
+
+	lookUpDataResponse := LookUpDataResponse{true, "test", con3}
+	network.lookUpDataResponse = lookUpDataResponse
+
+	databool, datastr, datacon := network.SendFindDataMessage()
+
+	assert.Equal(t, databool, true)
+	assert.Equal(t, datastr, "test")
+	assert.Equal(t, datacon, con3)
+
+	network.lookUpContactResponse = LookUpContactResponse{"test"}
+	constr := network.SendFindContactMessage()
+
+	assert.Equal(t, constr, "test")
+
+	network.pingResponse = PINGResponse{true, "test"}
+
+	pingbool, pingstr := network.SendPINGMessage()
+
+	assert.Equal(t, pingbool, true)
+	assert.Equal(t, pingstr, "test")
+
+}
+
+func TestGetLocalIP(t *testing.T) {
+	mestr := "FFFFFFFF00000000000000000000000000000000"
+	str1 := "FFFFFFFF00000000000000000000000000000000"
+	str2 := "1111111100000000000000000000000000000000"
+
+	meid := NewKademliaID(&mestr)
+	id1 := NewKademliaID(&str1)
+	id2 := NewKademliaID(&str2)
+	rt := NewRoutingTable(NewContact(&meid, "localhost"))
+	con1 := NewContact(&id1, "localhost")
+	con2 := NewContact(&id2, "localhost")
+	rt.AddContact(con1)
+	rt.AddContact(con2)
+	// network := NewNetwork(rt)
+
+	assert.Equal(t, GetLocalIP(), "130.240.65.43")
+}
+
+func TestAddLookforData(t *testing.T) {
+	mestr := "FFFFFFFF00000000000000000000000000000000"
+	str1 := "FFFFFFFF00000000000000000000000000000000"
+	str2 := "1111111100000000000000000000000000000000"
+
+	meid := NewKademliaID(&mestr)
+	id1 := NewKademliaID(&str1)
+	id2 := NewKademliaID(&str2)
+	rt := NewRoutingTable(NewContact(&meid, "localhost"))
+	con1 := NewContact(&id1, "localhost")
+	con2 := NewContact(&id2, "localhost")
+	rt.AddContact(con1)
+	rt.AddContact(con2)
+	network := NewNetwork(rt)
+
+	hash := network.AddToStore("test")
+	databool, element := network.LookForData(hash)
+	assert.True(t, databool)
+	assert.Equal(t, "test", element)
+}
