@@ -76,11 +76,14 @@ func (kademlia *Kademlia) LookupContact(target *Contact) string {
 		closestNode = shortlist.contacts[0]
 
 		for i := 0; i < alpha; i++ {
+			fmt.Println("shortlist lenght: " + fmt.Sprint(len(shortlist.contacts)))
+			fmt.Println("i: " + fmt.Sprint(i))
 			if len(shortlist.contacts) <= i {
 				break
 			}
 			contact := shortlist.contacts[i]
 			if !in(contact, alreadyused.contacts) {
+				fmt.Println("enter check!!!")
 				findNodeRPC := NewRPC(kademlia.network.routingTable.me, contact.Address, "FINDNODE", "")
 				kademlia.network.SendMessage(findNodeRPC)
 
@@ -88,13 +91,16 @@ func (kademlia *Kademlia) LookupContact(target *Contact) string {
 
 					time.Sleep(500 * time.Millisecond)
 					var data string
+					fmt.Println("data")
 					data = kademlia.network.SendFindContactMessage()
+					fmt.Println(data)
 					_ = data        //Ignores "data declared and not used" compilation error
 					if data != "" { //If not undefined
 						break //Exit for loop
 					}
 
 					if j == 10 {
+						fmt.Println("hej")
 						return "ERROR! Did not get response in time"
 					}
 				}
@@ -109,6 +115,8 @@ func (kademlia *Kademlia) LookupContact(target *Contact) string {
 				if len(shortlist.contacts) >= 2 {
 					for k := 0; k < len(shortlist.contacts); k++ {
 						for j := k + 1; j < len(shortlist.contacts); j++ {
+							fmt.Println("LESS: &t", (shortlist.contacts[j].Less(&shortlist.contacts[k])))
+							fmt.Println("k, j " + fmt.Sprint(k) + ", " + fmt.Sprint(j))
 							if shortlist.contacts[j].Less(&shortlist.contacts[k]) {
 								temp := shortlist.contacts[k]
 								shortlist.contacts[k] = shortlist.contacts[j]
@@ -117,9 +125,12 @@ func (kademlia *Kademlia) LookupContact(target *Contact) string {
 						}
 					}
 				}
+				fmt.Println("Exit Sort")
 
 			}
+			fmt.Println("exit if statement")
 		}
+		fmt.Println("Exit i loop")
 		if len(shortlist.contacts) > bucketSize {
 			shortlist.CutContacts(bucketSize)
 		}
@@ -128,6 +139,7 @@ func (kademlia *Kademlia) LookupContact(target *Contact) string {
 	KTrJson := kademlia.network.KTriplesJSON(shortlist.contacts)
 	fmt.Println(KTrJson)
 	fmt.Println(kademlia.network.routingTable.me)
+	fmt.Println("Exit main loop")
 	return KTrJson
 
 }
