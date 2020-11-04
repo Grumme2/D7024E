@@ -37,28 +37,6 @@ func (cli *cli) AwaitCommand() {
 		} else {
 			fmt.Println("Error! Invalid arguments!")
 		}
-	case "TESTPUT":
-		if len(inputSplit) == 3 {
-			fileUpload := inputSplit[1]
-			targetIP := inputSplit[2]
-			_ = targetIP
-			//Uploads file
-			cli.kademlia.Store(fileUpload) //File upload works (well atleast the RPC is sent and received properly)
-			//See if file is uploaded
-
-			time.Sleep(1000 * time.Millisecond) //Sleep for 3s
-
-			findValueRPC := NewRPC(cli.kademlia.network.routingTable.me, targetIP, "FINDVALUE", cli.kademlia.network.MakeHash(fileUpload))
-			cli.kademlia.network.SendMessage(findValueRPC)
-
-			time.Sleep(1000 * time.Millisecond) //Sleep for 3s
-
-			fmt.Println(cli.kademlia.network.lookUpDataResponse.DataFound)
-			fmt.Println(cli.kademlia.network.lookUpDataResponse.Data)
-			fmt.Println(cli.kademlia.network.lookUpDataResponse.Node)
-		} else {
-			fmt.Println("Error! Invalid arguments!")
-		}
 	case "PUT":
 		if len(inputSplit) == 2 {
 			fileUpload := inputSplit[1]
@@ -70,11 +48,11 @@ func (cli *cli) AwaitCommand() {
 			time.Sleep(3000 * time.Millisecond) //Sleep for 3s
 
 			hashedUpload := cli.kademlia.network.MakeHash(fileUpload)
-			dataFound, data, node := cli.kademlia.LookupData(hashedUpload)
+			dataFound, data, node := cli.kademlia.LookupData(fileUpload)
 			_ = data //Prevent data declared and not used compilation error
 			_ = node //Prevent data declared and not used compilation error
 			if dataFound {
-				fmt.Println("File upload successfully! Hashed upload: " + hashedUpload)
+				fmt.Println("File upload successfully! Hashed upload: " + string(hashedUpload[:]))
 			} else {
 				fmt.Println(dataFound)
 				fmt.Println(data)

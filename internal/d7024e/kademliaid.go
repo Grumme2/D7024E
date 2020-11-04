@@ -4,6 +4,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"math/rand"
+	"fmt"
 )
 
 // the static number of bytes in a KademliaID
@@ -13,7 +14,7 @@ const IDLength = 20
 type KademliaID [IDLength]byte
 
 // NewKademliaID returns a new instance of a KademliaID based on the string input
-func NewKademliaID(data *string) KademliaID {
+func NewKademliaID(data string) KademliaID {
 	/*decoded, _ := hex.DecodeString(data)
 
 	//Loop goes out of bounds since IDLength is 20 bytes
@@ -23,7 +24,9 @@ func NewKademliaID(data *string) KademliaID {
 	for i := 0; i < IDLength; i++ {
 		newKademliaID[i] = decoded[i]
 	}*/
-	hash := sha1.Sum([]byte(*data))
+	hash := sha1.Sum([]byte(data))
+	fmt.Println("HASH------")
+	fmt.Println(hash)
 
 	return hash
 }

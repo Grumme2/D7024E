@@ -2,11 +2,12 @@ package d7024e
 
 import (
 	"container/list"
-	"encoding/hex"
+	//"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net"
 	"time"
+	"crypto/sha1"
 )
 
 type Network struct {
@@ -179,7 +180,7 @@ func (network *Network) ListenHandler(receivedData []byte, connection *net.UDPCo
 	case "STORE":
 		key := network.AddToStore(decodedData.Content)
 		responseType = "OK"
-		responseContent = key
+		responseContent = string(key[:])
 	case "FINDVALUE":
 		dataFound, data := network.LookForData(decodedData.Content)
 		if dataFound {
@@ -223,15 +224,15 @@ func (network *Network) ListenHandler(receivedData []byte, connection *net.UDPCo
 	}
 }
 
-func (network *Network) AddToStore(message string) string {
+func (network *Network) AddToStore(message string) KademliaID {
 	hxMsg := network.MakeHash(message)
-	network.routingTable.me.KeyValueStore[hxMsg] = message
+	network.routingTable.me.KeyValueStore[string(hxMsg[:])] = message
 	return hxMsg
 }
 
 func (network *Network) LookForData(hash string) (bool, string) {
 	for key, element := range network.routingTable.me.KeyValueStore {
-		if key == hash {
+		if string(key[:]) == hash {
 			fmt.Println("LookForData found element: " + element)
 			return true, element
 		}
@@ -239,15 +240,22 @@ func (network *Network) LookForData(hash string) (bool, string) {
 	return false, ""
 }
 
-func (network *Network) MakeHash(message string) string {
-	hx := hex.EncodeToString([]byte(message))
-	return hx
+func (network *Network) MakeHash(message string) KademliaID {
+		hash := sha1.Sum([]byte(message))
+		fmt.Println("MAKEHASH------")
+		fmt.Println(hash)
+	
+		return hash
 }
 
 func (network *Network) storeRPC(message RPC) {
 	hash := network.MakeHash(message.Content)
-	fmt.Printf(hash)
+	fmt.Printf(string(hash[:]))
 	network.SendMessage(message)
+}
+
+func (network *Network) idToString(id KademliaID) string {
+	return string(id[:])
 }
 
 func (network *Network) JSONEncodeLookUpDataResponse(unencodedResponse LookUpDataResponse) string {
