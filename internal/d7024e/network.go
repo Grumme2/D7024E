@@ -71,11 +71,6 @@ func (network *Network) CheckNodesAwaitingResponse() {
 
 	for e := network.awaitingResponseList.Front(); e != nil; e = e.Next() {
 		nodeTimestamp := e.Value.(AwaitingResponseObject).timestamp
-		fmt.Println(nodeTimestamp)
-		fmt.Println(currentTime)
-		fmt.Println(currentTime - nodeTimestamp)
-		fmt.Println(e.Value.(AwaitingResponseObject).oldNode)
-		fmt.Println(e.Value.(AwaitingResponseObject).newNode)
 		if (currentTime - nodeTimestamp) >= 5 { //If 5 seconds or more have passed
 			network.routingTable.RemoveContact(e.Value.(AwaitingResponseObject).oldNode)
 			network.routingTable.AddContact(e.Value.(AwaitingResponseObject).newNode)
@@ -178,9 +173,8 @@ func (network *Network) ListenHandler(receivedData []byte, connection *net.UDPCo
 	case "OK":
 		responseType = "NONE"
 	case "STORE":
-		key := network.AddToStore(decodedData.Content)
+		network.AddToStore(decodedData.Content)
 		responseType = "OK"
-		responseContent = string(key[:])
 	case "FINDVALUE":
 		dataFound, data := network.LookForData(decodedData.Content)
 		if dataFound {
@@ -207,7 +201,7 @@ func (network *Network) ListenHandler(receivedData []byte, connection *net.UDPCo
 
 	case "FINDNODE_RESPONSE":
 		network.lookUpContactResponse = LookUpContactResponse{decodedData.Content}
-		fmt.Println(network.lookUpContactResponse)
+		//fmt.Println(network.lookUpContactResponse)
 		responseType = "NONE"
 
 	case "PONG":
@@ -224,15 +218,24 @@ func (network *Network) ListenHandler(receivedData []byte, connection *net.UDPCo
 	}
 }
 
-func (network *Network) AddToStore(message string) KademliaID {
+func (network *Network) AddToStore(message string) {
 	hxMsg := network.MakeHash(message)
-	network.routingTable.me.KeyValueStore[string(hxMsg[:])] = message
-	return hxMsg
+
+	hxMsgJSON, err := json.Marshal(hxMsg)
+    if err != nil {
+		fmt.Println(err)
+	}
+	
+	network.routingTable.me.KeyValueStore[string(hxMsgJSON)] = message
 }
 
 func (network *Network) LookForData(hash string) (bool, string) {
 	for key, element := range network.routingTable.me.KeyValueStore {
-		if string(key[:]) == hash {
+		fmt.Println("LookForData loop")
+		fmt.Println("Key: " + key)
+		fmt.Println("Hash: " + hash)
+
+		if key == hash {
 			fmt.Println("LookForData found element: " + element)
 			return true, element
 		}
@@ -241,21 +244,12 @@ func (network *Network) LookForData(hash string) (bool, string) {
 }
 
 func (network *Network) MakeHash(message string) KademliaID {
-		hash := sha1.Sum([]byte(message))
-		fmt.Println("MAKEHASH------")
-		fmt.Println(hash)
-	
-		return hash
+	hash := sha1.Sum([]byte(message))
+	return hash
 }
 
 func (network *Network) storeRPC(message RPC) {
-	hash := network.MakeHash(message.Content)
-	fmt.Printf(string(hash[:]))
 	network.SendMessage(message)
-}
-
-func (network *Network) idToString(id KademliaID) string {
-	return string(id[:])
 }
 
 func (network *Network) JSONEncodeLookUpDataResponse(unencodedResponse LookUpDataResponse) string {

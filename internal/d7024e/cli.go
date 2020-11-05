@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"encoding/json"
 )
 
 type cli struct {
@@ -31,12 +32,6 @@ func (cli *cli) AwaitCommand() {
 	case "EXIT":
 		fmt.Println("EXIT command detected")
 		return //Exits the function and terminates the node
-	case "PRINT":
-		if len(inputSplit) > 1 {
-			fmt.Println("Printing test: " + inputSplit[1])
-		} else {
-			fmt.Println("Error! Invalid arguments!")
-		}
 	case "PUT":
 		if len(inputSplit) == 2 {
 			fileUpload := inputSplit[1]
@@ -45,14 +40,21 @@ func (cli *cli) AwaitCommand() {
 			cli.kademlia.Store(fileUpload) //File upload works (well atleast the RPC is sent and received properly)
 			//See if file is uploaded
 
-			time.Sleep(3000 * time.Millisecond) //Sleep for 3s
+			time.Sleep(300 * time.Millisecond) //Sleep for 0.3s
 
 			hashedUpload := cli.kademlia.network.MakeHash(fileUpload)
-			dataFound, data, node := cli.kademlia.LookupData(fileUpload)
+
+			hashedJson, err := json.Marshal(hashedUpload)
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			dataFound, data, node := cli.kademlia.LookupData(string(hashedJson))
 			_ = data //Prevent data declared and not used compilation error
 			_ = node //Prevent data declared and not used compilation error
 			if dataFound {
-				fmt.Println("File upload successfully! Hashed upload: " + string(hashedUpload[:]))
+				fmt.Println("File upload successfully! Hashed upload: ")
+				fmt.Println(hashedUpload)
 			} else {
 				fmt.Println(dataFound)
 				fmt.Println(data)
@@ -64,9 +66,18 @@ func (cli *cli) AwaitCommand() {
 			fmt.Println("Error! Invalid arguments!")
 		}
 	case "GET":
-		if len(inputSplit) == 2 {
+		if len(inputSplit) > 2 {
+			inputSplit = space.Split(inputText, 2)
 			hash := inputSplit[1]
-			dataFound, data, node := cli.kademlia.LookupData(hash)
+
+			hashedJson, err := json.Marshal(hash)
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			fmt.Println("Hashedjson: " + string(hashedJson))
+
+			dataFound, data, node := cli.kademlia.LookupData(string(hashedJson))
 			_ = data //Prevent data declared and not used compilation error
 			if dataFound {
 				//Also return which node it was retrieved from

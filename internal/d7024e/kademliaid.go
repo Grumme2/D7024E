@@ -4,7 +4,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"math/rand"
-	"fmt"
+	//"fmt"
 )
 
 // the static number of bytes in a KademliaID
@@ -25,8 +25,6 @@ func NewKademliaID(data string) KademliaID {
 		newKademliaID[i] = decoded[i]
 	}*/
 	hash := sha1.Sum([]byte(data))
-	fmt.Println("HASH------")
-	fmt.Println(hash)
 
 	return hash
 }

@@ -30,7 +30,7 @@ func (Kademlia *Kademlia) JoinNetwork() {
 	bootStrapNode := NewContact(&bootStrapKademID, bootStrapIP)
 
 	if x == "3" { // if Bootstrap node nothing needs to be done
-		fmt.Println("bootstrapnode")
+		//fmt.Println("bootstrapnode")
 		return
 	} else {
 		i := 0
@@ -95,7 +95,7 @@ func (kademlia *Kademlia) LookupContact(target *Contact) string {
 					}
 
 					if j == 10 {
-						fmt.Printf("hej")
+						//fmt.Printf("hej")
 						return "ERROR! Did not get response in time"
 					}
 				}
@@ -127,8 +127,8 @@ func (kademlia *Kademlia) LookupContact(target *Contact) string {
 
 	}
 	KTrJson := kademlia.network.KTriplesJSON(shortlist.contacts)
-	fmt.Println(KTrJson)
-	fmt.Println(kademlia.network.routingTable.me)
+	//fmt.Println(KTrJson)
+	//fmt.Println(kademlia.network.routingTable.me)
 	return KTrJson
 
 }
