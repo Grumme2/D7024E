@@ -8,6 +8,7 @@ import (
 	"net"
 	"time"
 	"crypto/sha1"
+	"regexp"
 )
 
 type Network struct {
@@ -230,10 +231,18 @@ func (network *Network) AddToStore(message string) {
 }
 
 func (network *Network) LookForData(hash string) (bool, string) {
+
+	//Corrects hash if it is formatted wrong
+	if (string(hash[0]) == "\""){
+		hash = hash[1:len(hash)-1]
+		var re = regexp.MustCompile(`[ ]`)
+		hash = re.ReplaceAllString(hash, `,`)
+	}
+
 	for key, element := range network.routingTable.me.KeyValueStore {
-		fmt.Println("LookForData loop")
-		fmt.Println("Key: " + key)
-		fmt.Println("Hash: " + hash)
+		//fmt.Println("LookForData loop")
+		//fmt.Println("Key: " + key)
+		//fmt.Println("Hash: " + hash)
 
 		if key == hash {
 			fmt.Println("LookForData found element: " + element)
