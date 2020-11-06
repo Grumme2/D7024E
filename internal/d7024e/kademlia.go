@@ -26,11 +26,11 @@ func (Kademlia *Kademlia) JoinNetwork() {
 	bootStrapSplitIP := append(splitIP, "3")
 	bootStrapIP := strings.Join(bootStrapSplitIP, ".")             // Bootstrap nodes iP address
 	bootStrapNodeStr := "2111111300000000000000000000123000000000" // hardcoded bootstrapnode ID
-	bootStrapKademID := NewKademliaID(&bootStrapNodeStr)
+	bootStrapKademID := NewKademliaID(bootStrapNodeStr)
 	bootStrapNode := NewContact(&bootStrapKademID, bootStrapIP)
 
 	if x == "3" { // if Bootstrap node nothing needs to be done
-		fmt.Println("bootstrapnode")
+		//fmt.Println("bootstrapnode")
 		return
 	} else {
 		i := 0
@@ -95,7 +95,7 @@ func (kademlia *Kademlia) LookupContact(target *Contact) string {
 					}
 
 					if j == 10 {
-						fmt.Printf("hej")
+						//fmt.Printf("hej")
 						return "ERROR! Did not get response in time"
 					}
 				}
@@ -127,8 +127,8 @@ func (kademlia *Kademlia) LookupContact(target *Contact) string {
 
 	}
 	KTrJson := kademlia.network.KTriplesJSON(shortlist.contacts)
-	fmt.Println(KTrJson)
-	fmt.Println(kademlia.network.routingTable.me)
+	//fmt.Println(KTrJson)
+	//fmt.Println(kademlia.network.routingTable.me)
 	return KTrJson
 
 }
@@ -144,7 +144,7 @@ func in(a Contact, list []Contact) bool {
 
 func (kademlia *Kademlia) LookupData(hash string) (bool, string, Contact) {
 	kademlia.network.lookUpDataResponse = LookUpDataResponse{} //Resets LookUpDataResponse so we dont collect old results
-	newkademid := NewKademliaID(&hash)
+	newkademid := NewKademliaID(hash)
 
 	shortlist := ContactCandidates{kademlia.network.routingTable.FindClosestContacts(&newkademid, alpha)}
 	alreadyused := ContactCandidates{contacts: []Contact{}}
